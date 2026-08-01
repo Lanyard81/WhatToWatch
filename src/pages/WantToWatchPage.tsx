@@ -4,7 +4,9 @@ import { db } from '../lib/firebase';
 import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
+import { useViewMode } from '../hooks/useViewMode';
 import { TitleCard } from '../components/TitleCard';
+import { PosterCarousel } from '../components/PosterCarousel';
 import type { Title } from '../types';
 
 type SortMode = 'added' | 'alpha' | 'runtime';
@@ -21,6 +23,7 @@ export function WantToWatchPage() {
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
   const [sortMode, setSortMode] = useState<SortMode>('added');
+  const [viewMode, setViewMode] = useViewMode('want_to_watch');
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [runtimeCap, setRuntimeCap] = useState<RuntimeCap>('any');
@@ -100,6 +103,25 @@ export function WantToWatchPage() {
       )}
 
       {visibleTitles.length > 0 && (
+        <div className="view-toggle" role="group" aria-label="View style">
+          <button
+            type="button"
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+          >
+            ☰ List
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'carousel' ? 'active' : ''}
+            onClick={() => setViewMode('carousel')}
+          >
+            ▭▭ Posters
+          </button>
+        </div>
+      )}
+
+      {visibleTitles.length > 0 && viewMode === 'list' && (
         <div className="filter-bar">
           <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)}>
             <option value="added">Sort: Recently added</option>
@@ -109,41 +131,45 @@ export function WantToWatchPage() {
         </div>
       )}
 
-      <ul className="title-list">
-        {visibleTitles.map((title) => (
-          <li key={title.id}>
-            <TitleCard
-              title={title}
-              action={
-                markingId === title.id ? (
-                  <div className="watched-confirm">
-                    <input
-                      type="date"
-                      value={watchedDate}
-                      onChange={(e) => setWatchedDate(e.target.value)}
-                    />
-                    <button type="button" onClick={confirmWatched}>
-                      Confirm
-                    </button>
-                    <button type="button" className="secondary" onClick={() => setMarkingId(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="action-stack">
-                    <button type="button" onClick={() => startMarking(title)}>
-                      Mark watched
-                    </button>
-                    <button type="button" className="secondary" onClick={() => startWatching(title)}>
-                      Start watching
-                    </button>
-                  </div>
-                )
-              }
-            />
-          </li>
-        ))}
-      </ul>
+      {viewMode === 'carousel' ? (
+        <PosterCarousel titles={visibleTitles} />
+      ) : (
+        <ul className="title-list">
+          {visibleTitles.map((title) => (
+            <li key={title.id}>
+              <TitleCard
+                title={title}
+                action={
+                  markingId === title.id ? (
+                    <div className="watched-confirm">
+                      <input
+                        type="date"
+                        value={watchedDate}
+                        onChange={(e) => setWatchedDate(e.target.value)}
+                      />
+                      <button type="button" onClick={confirmWatched}>
+                        Confirm
+                      </button>
+                      <button type="button" className="secondary" onClick={() => setMarkingId(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="action-stack">
+                      <button type="button" onClick={() => startMarking(title)}>
+                        Mark watched
+                      </button>
+                      <button type="button" className="secondary" onClick={() => startWatching(title)}>
+                        Start watching
+                      </button>
+                    </div>
+                  )
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
