@@ -406,25 +406,30 @@ code {
 
 .poster-carousel {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   overflow-x: auto;
-  padding: 4px 4px 12px;
-  margin: 0 0 8px;
+  /* Break out of .page's 16px side padding so the active poster sits flush
+     with it, and peeking neighbours can reach the screen edge. */
+  margin: 0 -16px 8px;
+  padding: 4px 16px 16px;
   list-style: none;
   scroll-snap-type: x mandatory;
+  scroll-padding: 0 16px;
   -webkit-overflow-scrolling: touch;
 }
 
 .poster-carousel li {
-  scroll-snap-align: start;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
   flex-shrink: 0;
+  width: calc(100% - 12px);
 }
 
 .poster-tile {
-  width: 118px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   background: transparent;
   padding: 0;
   position: relative;
@@ -433,11 +438,12 @@ code {
 
 .poster-tile-image {
   display: block;
-  width: 118px;
-  height: 177px;
-  border-radius: 10px;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 .poster-tile-image img {
@@ -449,21 +455,23 @@ code {
 
 .poster-tile-badge {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 10px;
+  left: 10px;
   z-index: 1;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
 }
 
 .poster-tile-title {
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--text-h);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.3;
+  padding: 0 2px;
 }
 
 /* Random picker */
