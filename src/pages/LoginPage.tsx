@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
-  const { login, loginWithGoogle, redirectError } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +23,20 @@ export function LoginPage() {
     }
   }
 
-  function handleGoogleSignIn() {
+  async function handleGoogleSignIn() {
+    setError(null);
     setGoogleSubmitting(true);
-    // Navigates away to Google; the app reloads here once the redirect completes.
-    loginWithGoogle();
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? 'unknown';
+      // Cancelling the popup isn't an error worth showing.
+      if (code !== 'auth/cancelled-popup-request' && code !== 'auth/popup-closed-by-user') {
+        setError(`Could not sign in (${code}).`);
+      }
+    } finally {
+      setGoogleSubmitting(false);
+    }
   }
 
   return (
@@ -35,10 +45,8 @@ export function LoginPage() {
       <p className="subtitle">Sign in to your household</p>
 
       <button type="button" className="secondary" onClick={handleGoogleSignIn} disabled={googleSubmitting}>
-        {googleSubmitting ? 'Redirecting…' : 'Sign in with Google'}
+        {googleSubmitting ? 'Signing in…' : 'Sign in with Google'}
       </button>
-
-      {redirectError && <p className="error">Could not sign in ({redirectError}).</p>}
 
       <p className="hint" style={{ textAlign: 'center' }}>or</p>
 

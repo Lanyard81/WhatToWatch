@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import {
   GoogleAuthProvider,
-  getRedirectResult,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
   type User,
 } from 'firebase/auth';
@@ -13,7 +12,6 @@ import { auth } from '../lib/firebase';
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  redirectError: string | null;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -24,20 +22,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [redirectError, setRedirectError] = useState<string | null>(null);
 
   useEffect(() => {
-    getRedirectResult(auth)
-      .then((result) => {
-        console.log('[auth] getRedirectResult resolved:', result ? `user ${result.user.uid}` : 'no pending redirect');
-      })
-      .catch((err) => {
-        console.error('[auth] getRedirectResult error:', err);
-        setRedirectError((err as { code?: string }).code ?? 'unknown');
-      });
-
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log('[auth] onAuthStateChanged:', firebaseUser ? firebaseUser.uid : 'signed out');
       setUser(firebaseUser);
       setLoading(false);
     });
@@ -49,7 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function loginWithGoogle() {
-    await signInWithRedirect(auth, new GoogleAuthProvider());
+    // Popup (not redirect): more reliable on Safari, whose tracking protection
+    // can drop the session during the storage handoff a redirect round-trip needs.
+    await signInWithPopup(auth, new GoogleAuthProvider());
   }
 
   async function logout() {
@@ -57,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, redirectError, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
