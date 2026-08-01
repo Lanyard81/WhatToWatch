@@ -1,0 +1,106 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+  arrayUnion,
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from './AuthContext';
+import type { Household } from '../types';
+
+interface HouseholdContextValue {
+  household: Household | null;
+  loading: boolean;
+  error: string | null;
+  createHousehold: (name: string) => Promise<void>;
+  addMemberByUid: (uid: string) => Promise<void>;
+}
+
+const HouseholdContext = createContext<HouseholdContextValue | undefined>(undefined);
+
+export function HouseholdProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const [household, setHousehold] = useState<Household | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setHousehold(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    const q = query(collection(db, 'households'), where('memberIds', 'array-contains', user.uid));
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        if (snap.empty) {
+          setHousehold(null);
+        } else {
+          const d = snap.docs[0];
+          const data = d.data();
+          setHousehold({
+            id: d.id,
+            name: data.name,
+            ratingMode: data.ratingMode,
+            createdAt: data.createdAt?.toMillis?.() ?? Date.now(),
+            memberIds: data.memberIds ?? [],
+          });
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error('[household] snapshot error:', err);
+        setError(err.code === 'permission-denied'
+          ? 'Firestore rejected this request — have the security rules been deployed? (firebase deploy --only firestore:rules)'
+          : `Could not load household (${err.code}).`);
+        setLoading(false);
+      },
+    );
+
+    return unsubscribe;
+  }, [user]);
+
+  async function createHousehold(name: string) {
+    if (!user) throw new Error('Not signed in');
+    const ref = doc(collection(db, 'households'));
+    await setDoc(ref, {
+      name,
+      ratingMode: 'shared',
+      createdAt: serverTimestamp(),
+      memberIds: [user.uid],
+    });
+    await setDoc(doc(db, 'households', ref.id, 'members', user.uid), {
+      displayName: user.email ?? 'Member',
+      joinedAt: serverTimestamp(),
+    });
+  }
+
+  async function addMemberByUid(uid: string) {
+    if (!household) throw new Error('No household');
+    await updateDoc(doc(db, 'households', household.id), {
+      memberIds: arrayUnion(uid),
+    });
+  }
+
+  return (
+    <HouseholdContext.Provider value={{ household, loading, error, createHousehold, addMemberByUid }}>
+      {children}
+    </HouseholdContext.Provider>
+  );
+}
+
+export function useHousehold() {
+  const ctx = useContext(HouseholdContext);
+  if (!ctx) throw new Error('useHousehold must be used within HouseholdProvider');
+  return ctx;
+}
