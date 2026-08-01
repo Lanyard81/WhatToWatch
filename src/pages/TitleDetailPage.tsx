@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { arrayRemove, arrayUnion, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -22,9 +22,18 @@ function listPathFor(status: string) {
   return '/';
 }
 
+const BACK_LABELS: Record<string, string> = {
+  '/': 'Want to Watch',
+  '/watching': 'Watching',
+  '/watched': 'Watched',
+  '/search': 'Search',
+  '/stats': 'Stats',
+};
+
 export function TitleDetailPage() {
   const { titleId } = useParams<{ titleId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { household } = useHousehold();
   const { title, loading, error } = useTitle(household?.id, titleId);
@@ -74,7 +83,12 @@ export function TitleDetailPage() {
   }
 
   const titleRef = doc(db, 'households', household.id, 'titles', title.id);
-  const backTo = listPathFor(title.status);
+  // Prefer where the user actually came from (a search result, a poster
+  // carousel on any list, etc.) over the status-derived guess, which is
+  // only right about half the time once a title can live on several lists.
+  const cameFrom = (location.state as { from?: string } | null)?.from;
+  const backTo = cameFrom ?? listPathFor(title.status);
+  const backLabel = BACK_LABELS[backTo] ?? BACK_LABELS[listPathFor(title.status)];
 
   async function confirmMarkWatched() {
     const watchedAtMillis = new Date(`${watchedDate}T12:00:00`).getTime();
@@ -118,7 +132,7 @@ export function TitleDetailPage() {
   return (
     <div className="page detail-page">
       <button type="button" className="secondary back-button" onClick={() => navigate(backTo)}>
-        ← Back
+        ← Back to {backLabel}
       </button>
 
       {pendingIds.has(title.id) && (

@@ -1,27 +1,76 @@
+/* ============================================================
+   Design tokens — "Olive Grove", shared with the sibling app "The
+   Kitchen". Canonical values live here once; everything else in this
+   file (including the legacy --bg-card/--text/--accent/etc. aliases
+   kept for the rest of the stylesheet) reads from these.
+   ============================================================ */
 :root {
-  --text: #4b4553;
-  --text-h: #08060d;
-  --bg: #fff;
-  --bg-card: #faf9fb;
-  --border: #e5e4e7;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  /* Solid fill for buttons/active states — deliberately darker/more saturated
-     than --accent (which is tuned for text-on-background) so white text on
-     top always clears WCAG AA 4.5:1, in both themes. See craft floor. */
-  --accent-solid: #7c3aed;
-  --on-accent: #fff;
-  --danger: #d33;
-  /* Fixed across both themes — a filled surface with white text, not text
-     blended into the page background (that's --danger, which lightens for
-     dark mode; this must stay dark enough for white text at any time). */
-  --danger-solid: #dd3333;
-  --badge-tv: #3aa0ff;
-  --badge-tv-bg: rgba(59, 170, 255, 0.12);
+  /* Olive Grove — light */
+  --ov-bg: #f2f0e6;
+  --ov-card: #fcfbf5;
+  --ov-ink: #22301f;
+  --ov-ink-soft: #5a6653;
+  --ov-green: #33502f;
+  --ov-green-deep: #243a21;
+  --ov-mustard: #c07a17;
+  --ov-mustard-soft: #f3e3c4;
+  --ov-line: #dcd9c8;
+  --ov-danger: #a93e2c;
+  --ov-on-primary: #f4f2e4;
+  --ov-on-accent: #241a05;
+  --ov-accent-text: #6e4a0c;
+  --ov-note-text: #5c3e0a;
+  --ov-head-mut: #7a8470;
+  --ov-faint: #73756a;
+  --ov-disabled-text: #615f52;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Fixed across both themes — see contrast note below. */
+  --ov-danger-solid: #a93e2c;
+
+  --elev1: 0 1px 2px rgba(34, 48, 31, 0.05), 0 2px 8px rgba(34, 48, 31, 0.05);
+  --elev2: 0 2px 6px rgba(34, 48, 31, 0.06), 0 8px 20px rgba(34, 48, 31, 0.08);
+  --rim: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  --pressed: inset 0 2px 6px rgba(34, 48, 31, 0.14);
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  --font-display: 'Bricolage Grotesque', Georgia, serif;
+  --font-sans: 'Instrument Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
-  --display: 'Fraunces', Georgia, serif;
+
+  /* Legacy names — the rest of this file was written against this API;
+     keeping it as an alias layer over the Olive Grove tokens means
+     there is still exactly one source of truth for color. */
+  --bg: var(--ov-bg);
+  --bg-card: var(--ov-card);
+  --text-h: var(--ov-ink);
+  --text: var(--ov-ink-soft);
+  --border: var(--ov-line);
+  --accent: var(--ov-accent-text);
+  --accent-bg: var(--ov-mustard-soft);
+  --accent-solid: var(--ov-green);
+  --on-accent: var(--ov-on-primary);
+  --danger: var(--ov-danger);
+  --danger-solid: var(--ov-danger-solid);
+  --sans: var(--font-sans);
+
+  /* New concepts with no legacy equivalent. */
+  --green: var(--ov-green);
+  --green-deep: var(--ov-green-deep);
+  --mustard: var(--ov-mustard);
+  --mustard-soft: var(--ov-mustard-soft);
+  --on-primary: var(--ov-on-primary);
+  /* Text on a solid mustard fill — distinct from legacy --on-accent, which
+     now means "text on the primary (green) fill" via the alias above. */
+  --on-mustard: var(--ov-on-accent);
+  --note-text: var(--ov-note-text);
+  --head-mut: var(--ov-head-mut);
+  --faint: var(--ov-faint);
+  --disabled-text: var(--ov-disabled-text);
 
   /* Type scale — coherent rem steps (root font stays 16px so rem tracks OS
      text-size settings, unlike the old ad hoc px values). */
@@ -43,94 +92,68 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #b5b0bd;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --bg-card: #1d1e26;
-    --border: #2e303a;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --danger: #f87171;
+    --ov-bg: #161a13;
+    --ov-card: #1f251b;
+    --ov-ink: #e8eadd;
+    --ov-ink-soft: #a6af9a;
+    --ov-mustard: #d89a3e;
+    --ov-mustard-soft: #453615;
+    --ov-line: #343c2e;
+    --ov-danger: #d0654f;
+    --ov-accent-text: #e8c27c;
+    --ov-note-text: #e8c27c;
+    --ov-head-mut: #8a957d;
+    --ov-faint: #838d76;
+    --ov-disabled-text: #9da68e;
+
+    /* No bright top rim on a near-black surface — it blooms and eats
+       contrast. Hairline + deeper shadow carries the depth instead. */
+    --elev1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.28);
+    --elev2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 8px 20px rgba(0, 0, 0, 0.35);
+    --rim: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    --pressed: inset 0 2px 6px rgba(0, 0, 0, 0.55);
   }
 }
 
 /* Manual theme override (Settings → Appearance) wins over the OS preference in either direction. */
 :root[data-theme='light'] {
-  --text: #4b4553;
-  --text-h: #08060d;
-  --bg: #fff;
-  --bg-card: #faf9fb;
-  --border: #e5e4e7;
-  --danger: #d33;
+  --ov-bg: #f2f0e6;
+  --ov-card: #fcfbf5;
+  --ov-ink: #22301f;
+  --ov-ink-soft: #5a6653;
+  --ov-mustard: #c07a17;
+  --ov-mustard-soft: #f3e3c4;
+  --ov-line: #dcd9c8;
+  --ov-danger: #a93e2c;
+  --ov-accent-text: #6e4a0c;
+  --ov-note-text: #5c3e0a;
+  --ov-head-mut: #7a8470;
+  --ov-faint: #73756a;
+  --ov-disabled-text: #615f52;
+  --elev1: 0 1px 2px rgba(34, 48, 31, 0.05), 0 2px 8px rgba(34, 48, 31, 0.05);
+  --elev2: 0 2px 6px rgba(34, 48, 31, 0.06), 0 8px 20px rgba(34, 48, 31, 0.08);
+  --rim: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  --pressed: inset 0 2px 6px rgba(34, 48, 31, 0.14);
 }
 
 :root[data-theme='dark'] {
-  --text: #b5b0bd;
-  --text-h: #f3f4f6;
-  --bg: #16171d;
-  --bg-card: #1d1e26;
-  --border: #2e303a;
-  --danger: #f87171;
-}
-
-/* Accent presets — --accent (text/badges/links) differs by theme for
-   readability; --accent-solid (button fills) stays one contrast-checked
-   shade per preset across both themes, since it's always paired with
-   --on-accent white text, never blended into the page background. */
-:root[data-accent='purple'] {
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-solid: #7c3aed;
-}
-:root[data-accent='blue'] {
-  --accent: #2f7dff;
-  --accent-bg: rgba(47, 125, 255, 0.1);
-  --accent-solid: #1d4ed8;
-}
-:root[data-accent='green'] {
-  --accent: #22b573;
-  --accent-bg: rgba(34, 181, 115, 0.1);
-  --accent-solid: #15803d;
-}
-:root[data-accent='rose'] {
-  --accent: #e63b7a;
-  --accent-bg: rgba(230, 59, 122, 0.1);
-  --accent-solid: #be123c;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root[data-accent='purple'] {
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-  }
-  :root[data-accent='blue'] {
-    --accent: #6ea3ff;
-    --accent-bg: rgba(110, 163, 255, 0.15);
-  }
-  :root[data-accent='green'] {
-    --accent: #4bd696;
-    --accent-bg: rgba(75, 214, 150, 0.15);
-  }
-  :root[data-accent='rose'] {
-    --accent: #f06ea0;
-    --accent-bg: rgba(240, 110, 160, 0.15);
-  }
-}
-:root[data-theme='dark'][data-accent='purple'] {
-  --accent: #c084fc;
-  --accent-bg: rgba(192, 132, 252, 0.15);
-}
-:root[data-theme='dark'][data-accent='blue'] {
-  --accent: #6ea3ff;
-  --accent-bg: rgba(110, 163, 255, 0.15);
-}
-:root[data-theme='dark'][data-accent='green'] {
-  --accent: #4bd696;
-  --accent-bg: rgba(75, 214, 150, 0.15);
-}
-:root[data-theme='dark'][data-accent='rose'] {
-  --accent: #f06ea0;
-  --accent-bg: rgba(240, 110, 160, 0.15);
+  --ov-bg: #161a13;
+  --ov-card: #1f251b;
+  --ov-ink: #e8eadd;
+  --ov-ink-soft: #a6af9a;
+  --ov-mustard: #d89a3e;
+  --ov-mustard-soft: #453615;
+  --ov-line: #343c2e;
+  --ov-danger: #d0654f;
+  --ov-accent-text: #e8c27c;
+  --ov-note-text: #e8c27c;
+  --ov-head-mut: #8a957d;
+  --ov-faint: #838d76;
+  --ov-disabled-text: #9da68e;
+  --elev1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.28);
+  --elev2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 8px 20px rgba(0, 0, 0, 0.35);
+  --rim: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  --pressed: inset 0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -179,28 +202,25 @@ body {
 h1,
 h2,
 h3 {
+  font-family: var(--font-display);
   color: var(--text-h);
   margin: 0 0 12px;
 }
 
 h1 {
-  font-family: var(--display);
-  font-size: var(--text-3xl);
-  font-weight: 600;
+  font-size: 1.75rem; /* ~28px page title */
+  font-weight: 800;
   letter-spacing: -0.01em;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 h2 {
-  font-family: var(--display);
   font-size: var(--text-xl);
   font-weight: 600;
 }
 h3 {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: var(--text-md);
+  font-weight: 600;
   color: var(--text);
-  font-weight: 700;
 }
 
 p {
@@ -213,17 +233,20 @@ a {
 
 button {
   font: inherit;
+  font-weight: 500;
   border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  padding: 10px 18px;
   background: var(--accent-solid);
   color: var(--on-accent);
+  box-shadow: var(--elev1), var(--rim);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 button:active:not(:disabled) {
   transform: scale(0.97);
+  box-shadow: var(--pressed);
 }
 
 button:disabled {
@@ -235,12 +258,26 @@ button.secondary {
   background: transparent;
   color: var(--text);
   border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+button.secondary:active:not(:disabled) {
+  box-shadow: var(--pressed);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .title-card,
+  .bottom-nav a,
+  .fab {
+    transition: none !important;
+  }
 }
 
 input {
   font: inherit;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -256,7 +293,7 @@ button:focus-visible {
 code {
   font-family: var(--mono);
   background: var(--accent-bg);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   padding: 2px 6px;
   word-break: break-all;
 }
@@ -325,6 +362,66 @@ code {
   justify-content: center;
 }
 
+/* Top bar — just the Settings icon; low-frequency action doesn't deserve
+   a tab or the thumb-reach bottom-nav real estate. */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+
+.top-bar-settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.top-bar-settings:active {
+  box-shadow: var(--pressed);
+}
+
+.top-bar-settings svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Floating action button — deliberately NOT inline like Kitchen's add
+   action; stays a floating corner button per the brief. */
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mustard);
+  color: var(--on-mustard);
+  box-shadow: var(--elev2), var(--rim);
+  z-index: 15;
+  padding: 0;
+}
+
+.fab:active {
+  box-shadow: var(--pressed);
+  transform: scale(0.96);
+}
+
+.fab svg {
+  width: 26px;
+  height: 26px;
+}
+
 .bottom-nav {
   /* Sticky (not fixed) so the page itself is the single scroll container.
      A plain `position: fixed` bar can visually desync from the real
@@ -335,9 +432,10 @@ code {
   position: sticky;
   bottom: 0;
   display: flex;
+  gap: 6px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
   background: var(--bg-card);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: var(--elev1);
   z-index: 10;
 }
 
@@ -346,18 +444,22 @@ code {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   text-align: center;
-  padding: 8px 2px 10px;
+  padding: 7px 4px 8px;
+  border-radius: var(--radius-lg);
   font-size: 11px;
   color: var(--text);
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .bottom-nav a.active {
+  background: var(--mustard-soft);
   color: var(--accent);
   font-weight: 600;
+  box-shadow: var(--elev2), var(--rim);
 }
 
 .nav-icon {
@@ -405,8 +507,9 @@ code {
   padding: 18px;
   margin-bottom: 16px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: var(--bg-card);
+  box-shadow: var(--elev1), var(--rim);
 }
 
 .settings-card h2 {
@@ -468,7 +571,7 @@ code {
 .bulk-add-results li {
   font-size: var(--text-sm);
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   background: var(--bg);
 }
 
@@ -516,7 +619,7 @@ code {
 .view-toggle {
   display: inline-flex;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
   margin-bottom: 16px;
 }
@@ -580,10 +683,10 @@ code {
   display: block;
   width: 100%;
   aspect-ratio: 2 / 3;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--border);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--elev2);
 }
 
 .poster-tile-image img {
@@ -618,9 +721,10 @@ code {
 .picker-panel {
   margin-top: 10px;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--bg-card);
+  box-shadow: var(--elev1), var(--rim);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -630,7 +734,7 @@ code {
   font: inherit;
   font-size: 13px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -668,7 +772,7 @@ code {
   gap: 12px;
   padding: 8px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--bg-card);
 }
 
@@ -676,7 +780,7 @@ code {
   width: 46px;
   height: 69px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--border);
 }
@@ -723,14 +827,15 @@ code {
   gap: 12px;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--bg-card);
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .title-card:active {
   transform: scale(0.99);
+  box-shadow: var(--pressed);
 }
 
 .title-card:focus-visible {
@@ -742,7 +847,7 @@ code {
   width: 64px;
   height: 96px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--border);
 }
@@ -776,6 +881,8 @@ code {
 
 .title-card-heading h3 {
   margin: 0;
+  color: var(--text-h);
+  font-family: var(--font-display);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -830,19 +937,22 @@ code {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 
 .badge-movie {
-  background: var(--accent-bg);
+  background: var(--mustard-soft);
   color: var(--accent);
 }
 
+/* Solid fill rather than a soft tint like badge-movie — --green can't
+   double as text-on-card (fails contrast in dark mode, see token notes),
+   so it only appears as a fill, always paired with --on-primary. */
 .badge-tv {
-  background: var(--badge-tv-bg);
-  color: var(--badge-tv);
+  background: var(--green);
+  color: var(--on-primary);
 }
 
 .empty-state {
@@ -859,7 +969,7 @@ code {
   text-align: center;
   padding: 48px 20px;
   border: 1px dashed var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   color: var(--text);
 }
 
@@ -904,7 +1014,7 @@ code {
 
 button.danger {
   background: var(--danger-solid);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 button.danger-text {
@@ -925,7 +1035,7 @@ button.danger-text {
   font: inherit;
   font-size: 13px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -949,9 +1059,10 @@ button.danger-text {
   flex-direction: column;
   gap: 4px;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--bg-card);
+  box-shadow: var(--elev1), var(--rim);
 }
 
 .stat-value {
@@ -978,15 +1089,15 @@ button.danger-text {
   gap: 12px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--danger-solid);
-  color: #fff;
+  color: var(--on-primary);
   font-size: var(--text-sm);
 }
 
 .pending-delete-banner button.secondary {
-  color: #fff;
-  border-color: #fff;
+  color: var(--on-primary);
+  border-color: var(--on-primary);
   flex-shrink: 0;
 }
 
@@ -1004,9 +1115,10 @@ button.danger-text {
   width: 120px;
   height: 180px;
   flex-shrink: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--border);
+  box-shadow: var(--elev1);
 }
 
 .detail-poster img {
@@ -1032,6 +1144,7 @@ button.danger-text {
   padding: 6px 0;
   font-size: 13px;
   text-align: center;
+  border-radius: var(--radius-pill);
 }
 
 .rating-pick.active {
@@ -1061,7 +1174,7 @@ button.danger-text {
 .tag-chip {
   font-size: 12px;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--accent-bg);
   color: var(--accent);
 }
@@ -1088,10 +1201,10 @@ button.danger-text {
   list-style: none;
   margin: 0;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--bg-card);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--elev2), var(--rim);
 }
 
 .tag-suggestions button {
@@ -1102,7 +1215,8 @@ button.danger-text {
   color: var(--text-h);
   padding: 8px 10px;
   font-size: 13px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
+  box-shadow: none;
 }
 
 .tag-suggestions button:hover {
@@ -1112,7 +1226,7 @@ button.danger-text {
 .notes-input {
   font: inherit;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
@@ -1127,22 +1241,6 @@ button.danger-text {
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 16px;
-}
-
-.swatch-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-}
-
-.swatch-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: inline-block;
-  border: 1px solid var(--border);
 }
 
 .radio-row {
@@ -1177,9 +1275,10 @@ button.danger-text {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--text-h);
   color: var(--bg);
+  box-shadow: var(--elev2);
   z-index: 20;
   animation: toast-in 0.15s ease-out;
 }

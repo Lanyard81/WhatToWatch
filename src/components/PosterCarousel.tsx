@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Title } from '../types';
 import { TMDB_POSTER_BASE } from '../lib/tmdb';
 
 export function PosterCarousel({ titles }: { titles: Title[] }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <ul className="poster-carousel">
@@ -12,7 +13,7 @@ export function PosterCarousel({ titles }: { titles: Title[] }) {
           <button
             type="button"
             className="poster-tile"
-            onClick={() => navigate(`/title/${title.id}`)}
+            onClick={() => navigate(`/title/${title.id}`, { state: { from: location.pathname } })}
           >
             <span className="poster-tile-image">
               {title.posterPath ? (

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Title } from '../types';
 import { TMDB_POSTER_BASE } from '../lib/tmdb';
 import { useHousehold } from '../context/HouseholdContext';
@@ -12,18 +12,23 @@ interface TitleCardProps {
 
 export function TitleCard({ title, action, footer }: TitleCardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { household } = useHousehold();
   const { members } = useMembers(household?.id);
   const addedByName = members.find((m) => m.id === title.addedBy)?.displayName;
+
+  function openDetail() {
+    navigate(`/title/${title.id}`, { state: { from: location.pathname } });
+  }
 
   return (
     <div
       className="title-card"
       role="button"
       tabIndex={0}
-      onClick={() => navigate(`/title/${title.id}`)}
+      onClick={openDetail}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') navigate(`/title/${title.id}`);
+        if (e.key === 'Enter' || e.key === ' ') openDetail();
       }}
     >
       <div className="title-card-poster">

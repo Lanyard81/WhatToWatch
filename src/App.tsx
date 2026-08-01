@@ -4,6 +4,8 @@ import { HouseholdProvider, useHousehold } from './context/HouseholdContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PendingDeleteProvider } from './context/PendingDeleteContext';
 import { BottomNav } from './components/BottomNav';
+import { TopBar } from './components/TopBar';
+import { FloatingActionButton } from './components/FloatingActionButton';
 import { LoginPage } from './pages/LoginPage';
 import { HouseholdSetupPage } from './pages/HouseholdSetupPage';
 import { JoinPage } from './pages/JoinPage';
@@ -14,6 +16,8 @@ import { WatchedPage } from './pages/WatchedPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TitleDetailPage } from './pages/TitleDetailPage';
 import { StatsPage } from './pages/StatsPage';
+
+const FAB_ROUTES = new Set(['/', '/watching', '/watched']);
 
 function AppShell() {
   const location = useLocation();
@@ -54,6 +58,7 @@ function AppShell() {
   return (
     <PendingDeleteProvider>
       <div className="app-shell">
+        <TopBar />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<WantToWatchPage />} />
@@ -66,6 +71,7 @@ function AppShell() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        {FAB_ROUTES.has(location.pathname) && <FloatingActionButton />}
         <BottomNav />
       </div>
     </PendingDeleteProvider>
