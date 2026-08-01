@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import {
+  arrayRemove,
+  arrayUnion,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   onSnapshot,
@@ -9,7 +12,6 @@ import {
   setDoc,
   updateDoc,
   where,
-  arrayUnion,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
@@ -23,6 +25,7 @@ interface HouseholdContextValue {
   addMemberByUid: (uid: string) => Promise<void>;
   updateRatingMode: (mode: RatingMode) => Promise<void>;
   joinHousehold: (householdId: string) => Promise<void>;
+  leaveHousehold: () => Promise<void>;
 }
 
 const HouseholdContext = createContext<HouseholdContextValue | undefined>(undefined);
@@ -122,9 +125,28 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  async function leaveHousehold() {
+    if (!user || !household) throw new Error('No household to leave');
+    // Delete the member doc first, while still a member — deleting it after
+    // being removed from memberIds would fail the household-membership check.
+    await deleteDoc(doc(db, 'households', household.id, 'members', user.uid));
+    await updateDoc(doc(db, 'households', household.id), {
+      memberIds: arrayRemove(user.uid),
+    });
+  }
+
   return (
     <HouseholdContext.Provider
-      value={{ household, loading, error, createHousehold, addMemberByUid, updateRatingMode, joinHousehold }}
+      value={{
+        household,
+        loading,
+        error,
+        createHousehold,
+        addMemberByUid,
+        updateRatingMode,
+        joinHousehold,
+        leaveHousehold,
+      }}
     >
       {children}
     </HouseholdContext.Provider>

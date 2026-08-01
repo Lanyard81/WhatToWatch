@@ -26,7 +26,8 @@ export function HouseholdSetupPage() {
     <div className="auth-screen">
       <h1>Set up your household</h1>
       <p className="subtitle">
-        You're not in a household yet. Create one to start tracking what you watch.
+        You're not in a household yet. If someone sent you an invite link, open that instead of
+        creating one here — otherwise, create your own below.
       </p>
       <form onSubmit={handleSubmit} className="auth-form">
         <label>

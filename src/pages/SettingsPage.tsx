@@ -9,13 +9,15 @@ import type { RatingMode } from '../types';
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
-  const { household, addMemberByUid, updateRatingMode } = useHousehold();
+  const { household, addMemberByUid, updateRatingMode, leaveHousehold } = useHousehold();
   const { members } = useMembers(household?.id);
   const { theme, accent, setTheme, setAccent } = useTheme();
   const [uid, setUid] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const inviteLink = household
     ? `${window.location.origin}${import.meta.env.BASE_URL}join/${household.id}`
@@ -25,6 +27,16 @@ export function SettingsPage() {
     await navigator.clipboard.writeText(inviteLink);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  }
+
+  async function handleLeave() {
+    setLeaving(true);
+    try {
+      await leaveHousehold();
+    } finally {
+      setLeaving(false);
+      setConfirmingLeave(false);
+    }
   }
 
   async function handleAddMember(e: FormEvent) {
@@ -170,6 +182,29 @@ export function SettingsPage() {
         <p className="hint">
           <code>{user?.uid}</code>
         </p>
+      </section>
+
+      <section>
+        <h3>Leave household</h3>
+        <p className="hint">
+          Leaving removes you from "{household?.name}" and its lists. Use this if you set up your
+          own household by mistake and want to join someone else's invite link instead.
+        </p>
+        {confirmingLeave ? (
+          <div className="watched-confirm">
+            <p className="error">Leave "{household?.name}"?</p>
+            <button type="button" className="danger" onClick={handleLeave} disabled={leaving}>
+              {leaving ? 'Leaving…' : 'Leave'}
+            </button>
+            <button type="button" className="secondary" onClick={() => setConfirmingLeave(false)}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="secondary danger-text" onClick={() => setConfirmingLeave(true)}>
+            Leave household
+          </button>
+        )}
       </section>
 
       <button type="button" className="secondary" onClick={() => logout()}>
