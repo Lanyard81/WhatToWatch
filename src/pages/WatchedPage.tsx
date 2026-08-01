@@ -3,8 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
+import { useViewMode } from '../hooks/useViewMode';
 import { useRatings, SHARED_RATING_DOC_ID } from '../hooks/useRatings';
 import { TitleCard } from '../components/TitleCard';
+import { PosterCarousel } from '../components/PosterCarousel';
+import { PageHeader } from '../components/PageHeader';
+import { SkeletonList } from '../components/Skeleton';
 import type { Title } from '../types';
 
 type SortMode = 'date' | 'rating';
@@ -20,6 +24,7 @@ export function WatchedPage() {
   const [minRating, setMinRating] = useState(0);
   const [ratingsByTitle, setRatingsByTitle] = useState<Record<string, number | null>>({});
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useViewMode('watched', 'list');
 
   const titles = useMemo(() => rawTitles.filter((t) => !pendingIds.has(t.id)), [rawTitles, pendingIds]);
 
@@ -57,12 +62,36 @@ export function WatchedPage() {
 
   return (
     <div className="page">
-      <h1>Watched</h1>
+      <PageHeader title="Watched" subtitle={titles.length ? `${titles.length} title${titles.length === 1 ? '' : 's'}` : undefined} />
 
       {error && <p className="error">{error}</p>}
 
+      {loading && <SkeletonList count={4} />}
+
       {!loading && !error && titles.length === 0 && (
-        <p className="empty-state">Nothing marked as watched yet.</p>
+        <div className="empty-state-card">
+          <span className="empty-state-icon" aria-hidden="true">✅</span>
+          <p>Nothing marked as watched yet — it'll show up here once you finish something.</p>
+        </div>
+      )}
+
+      {titles.length > 0 && (
+        <div className="view-toggle" role="group" aria-label="View style">
+          <button
+            type="button"
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+          >
+            ☰ List
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'carousel' ? 'active' : ''}
+            onClick={() => setViewMode('carousel')}
+          >
+            ▭▭ Posters
+          </button>
+        </div>
       )}
 
       {titles.length > 0 && (
@@ -93,19 +122,23 @@ export function WatchedPage() {
         </div>
       )}
 
-      <ul className="title-list">
-        {displayedTitles.map((title) => (
-          <li key={title.id}>
-            <WatchedRow
-              title={title}
-              householdId={household?.id}
-              ratingMode={household?.ratingMode ?? 'shared'}
-              myUid={user?.uid}
-              onRating={reportRating}
-            />
-          </li>
-        ))}
-      </ul>
+      {viewMode === 'carousel' ? (
+        <PosterCarousel titles={displayedTitles} />
+      ) : (
+        <ul className="title-list">
+          {displayedTitles.map((title) => (
+            <li key={title.id}>
+              <WatchedRow
+                title={title}
+                householdId={household?.id}
+                ratingMode={household?.ratingMode ?? 'shared'}
+                myUid={user?.uid}
+                onRating={reportRating}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

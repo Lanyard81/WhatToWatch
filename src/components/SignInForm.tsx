@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { authErrorMessage } from '../lib/errorMessages';
 
 export function SignInForm() {
   const { login, loginWithGoogle } = useAuth();
@@ -17,7 +18,7 @@ export function SignInForm() {
       await login(email, password);
     } catch (err) {
       const code = (err as { code?: string }).code ?? 'unknown';
-      setError(`Could not sign in (${code}).`);
+      setError(authErrorMessage(code));
     } finally {
       setSubmitting(false);
     }
@@ -30,10 +31,7 @@ export function SignInForm() {
       await loginWithGoogle();
     } catch (err) {
       const code = (err as { code?: string }).code ?? 'unknown';
-      // Cancelling the popup isn't an error worth showing.
-      if (code !== 'auth/cancelled-popup-request' && code !== 'auth/popup-closed-by-user') {
-        setError(`Could not sign in (${code}).`);
-      }
+      setError(authErrorMessage(code));
     } finally {
       setGoogleSubmitting(false);
     }

@@ -7,6 +7,7 @@ const UNDO_WINDOW_MS = 5000;
 interface PendingDeleteContextValue {
   pendingIds: Set<string>;
   requestDelete: (householdId: string, titleId: string, titleName: string) => void;
+  undoDelete: (titleId: string) => void;
 }
 
 const PendingDeleteContext = createContext<PendingDeleteContextValue | undefined>(undefined);
@@ -54,7 +55,7 @@ export function PendingDeleteProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <PendingDeleteContext.Provider value={{ pendingIds, requestDelete }}>
+    <PendingDeleteContext.Provider value={{ pendingIds, requestDelete, undoDelete: undo }}>
       {children}
       {toast && (
         <div className="toast">

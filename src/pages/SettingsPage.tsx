@@ -5,6 +5,7 @@ import { useHousehold } from '../context/HouseholdContext';
 import { useMembers } from '../hooks/useMembers';
 import { useTheme, ACCENTS, type ThemeMode } from '../context/ThemeContext';
 import { ImportHistorySection } from '../components/ImportHistorySection';
+import { PageHeader } from '../components/PageHeader';
 import type { RatingMode } from '../types';
 
 export function SettingsPage() {
@@ -56,9 +57,9 @@ export function SettingsPage() {
 
   return (
     <div className="page settings-page">
-      <h1>Settings</h1>
+      <PageHeader title="Settings" />
 
-      <section>
+      <div className="settings-card">
         <h2>{household?.name}</h2>
         <ul className="member-list">
           {(household?.memberIds ?? []).map((id) => (
@@ -68,9 +69,22 @@ export function SettingsPage() {
             </li>
           ))}
         </ul>
-      </section>
 
-      <section>
+        <h3>Invite someone</h3>
+        <p className="hint">
+          Share this link — anyone who opens it can sign in and join straight away, no account
+          setup needed on your end. Anyone with the link can join, so only share it with people
+          you trust — there's no way to remove a member yet.
+        </p>
+        <div className="invite-link-row">
+          <input type="text" readOnly value={inviteLink} onFocus={(e) => e.target.select()} />
+          <button type="button" onClick={copyInviteLink}>
+            {linkCopied ? 'Copied!' : 'Copy link'}
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-card">
         <h3>Ratings</h3>
         <div className="radio-row">
           <label>
@@ -92,9 +106,9 @@ export function SettingsPage() {
             Individual — each person rates separately
           </label>
         </div>
-      </section>
+      </div>
 
-      <section>
+      <div className="settings-card">
         <h3>Appearance</h3>
         <p className="hint">Theme</p>
         <div className="appearance-row">
@@ -123,69 +137,53 @@ export function SettingsPage() {
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
-      <section>
+      <div className="settings-card">
+        <h3>Data</h3>
         <Link to="/stats">
           <button type="button" className="secondary">
             View stats →
           </button>
         </Link>
-      </section>
+        <ImportHistorySection />
 
-      <ImportHistorySection />
+        <details className="advanced-disclosure">
+          <summary>Advanced</summary>
 
-      <section>
-        <h3>Invite someone</h3>
-        <p className="hint">
-          Share this link — anyone who opens it can sign in and join "{household?.name}"
-          straight away, no account setup needed on your end.
-        </p>
-        <div className="invite-link-row">
-          <input type="text" readOnly value={inviteLink} onFocus={(e) => e.target.select()} />
-          <button type="button" onClick={copyInviteLink}>
-            {linkCopied ? 'Copied!' : 'Copy link'}
-          </button>
-        </div>
-        <p className="hint">
-          Anyone with this link can join, so only share it with people you trust — there's no way
-          to remove a member yet.
-        </p>
-      </section>
+          <div className="advanced-disclosure-body">
+            <h3>Add by user ID</h3>
+            <p className="hint">
+              Fallback if sharing a link isn't convenient: they sign in once so their account
+              exists, share their user ID with you, then add it below.
+            </p>
+            <form onSubmit={handleAddMember} className="auth-form">
+              <label>
+                User ID
+                <input
+                  type="text"
+                  value={uid}
+                  onChange={(e) => setUid(e.target.value)}
+                  placeholder="Firebase user ID"
+                  required
+                />
+              </label>
+              <button type="submit" disabled={submitting}>
+                {submitting ? 'Adding…' : 'Add member'}
+              </button>
+            </form>
+            {status && <p className="hint">{status}</p>}
 
-      <section>
-        <h3>Add by user ID</h3>
-        <p className="hint">
-          Fallback if sharing a link isn't convenient: they sign in once so their account exists,
-          share their user ID with you, then add it below.
-        </p>
-        <form onSubmit={handleAddMember} className="auth-form">
-          <label>
-            User ID
-            <input
-              type="text"
-              value={uid}
-              onChange={(e) => setUid(e.target.value)}
-              placeholder="Firebase user ID"
-              required
-            />
-          </label>
-          <button type="submit" disabled={submitting}>
-            {submitting ? 'Adding…' : 'Add member'}
-          </button>
-        </form>
-        {status && <p className="hint">{status}</p>}
-      </section>
+            <h3>Your user ID</h3>
+            <p className="hint">
+              <code>{user?.uid}</code>
+            </p>
+          </div>
+        </details>
+      </div>
 
-      <section>
-        <h3>Your user ID</h3>
-        <p className="hint">
-          <code>{user?.uid}</code>
-        </p>
-      </section>
-
-      <section>
-        <h3>Leave household</h3>
+      <div className="settings-card settings-danger-zone">
+        <h3>Danger zone</h3>
         <p className="hint">
           Leaving removes you from "{household?.name}" and its lists. Use this if you set up your
           own household by mistake and want to join someone else's invite link instead.
@@ -205,11 +203,11 @@ export function SettingsPage() {
             Leave household
           </button>
         )}
-      </section>
 
-      <button type="button" className="secondary" onClick={() => logout()}>
-        Sign out
-      </button>
+        <button type="button" className="secondary" onClick={() => logout()}>
+          Sign out
+        </button>
+      </div>
     </div>
   );
 }

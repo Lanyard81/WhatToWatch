@@ -5,6 +5,7 @@ import { searchTitles, fetchTitleDetails, TMDB_POSTER_BASE } from '../lib/tmdb';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { useExistingTmdbIds } from '../hooks/useExistingTmdbIds';
+import { PageHeader } from '../components/PageHeader';
 import type { MediaType, TmdbSearchResult } from '../types';
 
 const DEBOUNCE_MS = 300;
@@ -87,7 +88,7 @@ export function SearchPage() {
 
   return (
     <div className="page">
-      <h1>Add a title</h1>
+      <PageHeader title="Add a title" />
       <div className="search-input-row">
         <input
           type="search"

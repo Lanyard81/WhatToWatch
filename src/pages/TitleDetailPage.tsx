@@ -31,7 +31,7 @@ export function TitleDetailPage() {
   const { members } = useMembers(household?.id);
   const { ratings } = useRatings(household?.id, titleId);
   const householdTags = useHouseholdTags(household?.id);
-  const { requestDelete } = usePendingDelete();
+  const { pendingIds, requestDelete, undoDelete } = usePendingDelete();
 
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
   const [marking, setMarking] = useState(false);
@@ -121,6 +121,15 @@ export function TitleDetailPage() {
         ← Back
       </button>
 
+      {pendingIds.has(title.id) && (
+        <div className="pending-delete-banner">
+          <span>This title is being deleted…</span>
+          <button type="button" className="secondary" onClick={() => undoDelete(title.id)}>
+            Undo
+          </button>
+        </div>
+      )}
+
       <div className="detail-header">
         <div className="detail-poster">
           {title.posterPath ? (
@@ -145,6 +154,10 @@ export function TitleDetailPage() {
             </p>
           )}
           {title.status === 'watching' && <p className="title-card-meta">Currently watching</p>}
+          <p className="title-card-meta">
+            Added by {memberNames.get(title.addedBy) ?? 'someone'} on{' '}
+            {new Date(title.addedAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
 

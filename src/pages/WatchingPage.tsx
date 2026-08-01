@@ -4,7 +4,11 @@ import { db } from '../lib/firebase';
 import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
+import { useViewMode } from '../hooks/useViewMode';
 import { TitleCard } from '../components/TitleCard';
+import { PosterCarousel } from '../components/PosterCarousel';
+import { PageHeader } from '../components/PageHeader';
+import { SkeletonList } from '../components/Skeleton';
 import type { Title } from '../types';
 
 function todayInputValue() {
@@ -17,6 +21,8 @@ export function WatchingPage() {
   const { pendingIds } = usePendingDelete();
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
+  const [viewMode, setViewMode] = useViewMode('watching', 'carousel');
+  const [celebration, setCelebration] = useState<string | null>(null);
 
   const visibleTitles = useMemo(() => titles.filter((t) => !pendingIds.has(t.id)), [titles, pendingIds]);
 
@@ -25,14 +31,16 @@ export function WatchingPage() {
     setWatchedDate(todayInputValue());
   }
 
-  async function confirmWatched() {
-    if (!household || !markingId) return;
+  async function confirmWatched(title: Title) {
+    if (!household) return;
     const watchedAtMillis = new Date(`${watchedDate}T12:00:00`).getTime();
-    await updateDoc(doc(db, 'households', household.id, 'titles', markingId), {
+    await updateDoc(doc(db, 'households', household.id, 'titles', title.id), {
       status: 'watched',
       watchedAt: Timestamp.fromMillis(watchedAtMillis),
     });
     setMarkingId(null);
+    setCelebration(`🎬 "${title.name}" marked as watched`);
+    setTimeout(() => setCelebration(null), 2500);
   }
 
   async function backToWantToWatch(title: Title) {
@@ -44,49 +52,83 @@ export function WatchingPage() {
 
   return (
     <div className="page">
-      <h1>Watching</h1>
+      <PageHeader title="Watching" subtitle="In progress right now" />
 
       {error && <p className="error">{error}</p>}
 
+      {loading && <SkeletonList count={2} />}
+
       {!loading && !error && visibleTitles.length === 0 && (
-        <p className="empty-state">Nothing in progress — mark a title as "Start watching" from your Want to Watch list.</p>
+        <div className="empty-state-card">
+          <span className="empty-state-icon" aria-hidden="true">📺</span>
+          <p>Nothing in progress. Mark something "Start watching" from Want to Watch.</p>
+        </div>
       )}
 
-      <ul className="title-list">
-        {visibleTitles.map((title) => (
-          <li key={title.id}>
-            <TitleCard
-              title={title}
-              action={
-                markingId === title.id ? (
-                  <div className="watched-confirm">
-                    <input
-                      type="date"
-                      value={watchedDate}
-                      onChange={(e) => setWatchedDate(e.target.value)}
-                    />
-                    <button type="button" onClick={confirmWatched}>
-                      Confirm
-                    </button>
-                    <button type="button" className="secondary" onClick={() => setMarkingId(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="action-stack">
-                    <button type="button" onClick={() => startMarking(title)}>
-                      Mark watched
-                    </button>
-                    <button type="button" className="secondary" onClick={() => backToWantToWatch(title)}>
-                      Back to Want to Watch
-                    </button>
-                  </div>
-                )
-              }
-            />
-          </li>
-        ))}
-      </ul>
+      {visibleTitles.length > 0 && (
+        <div className="view-toggle" role="group" aria-label="View style">
+          <button
+            type="button"
+            className={viewMode === 'carousel' ? 'active' : ''}
+            onClick={() => setViewMode('carousel')}
+          >
+            ▭▭ Posters
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+          >
+            ☰ List
+          </button>
+        </div>
+      )}
+
+      {viewMode === 'carousel' && visibleTitles.length > 0 ? (
+        <PosterCarousel titles={visibleTitles} />
+      ) : (
+        <ul className="title-list">
+          {visibleTitles.map((title) => (
+            <li key={title.id}>
+              <TitleCard
+                title={title}
+                action={
+                  markingId === title.id ? (
+                    <div className="watched-confirm">
+                      <input
+                        type="date"
+                        value={watchedDate}
+                        onChange={(e) => setWatchedDate(e.target.value)}
+                      />
+                      <button type="button" onClick={() => confirmWatched(title)}>
+                        Confirm
+                      </button>
+                      <button type="button" className="secondary" onClick={() => setMarkingId(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="action-stack">
+                      <button type="button" onClick={() => startMarking(title)}>
+                        Mark watched
+                      </button>
+                      <button type="button" className="secondary" onClick={() => backToWantToWatch(title)}>
+                        Back to Want to Watch
+                      </button>
+                    </div>
+                  )
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {celebration && (
+        <div className="toast toast-positive">
+          <span>{celebration}</span>
+        </div>
+      )}
     </div>
   );
 }

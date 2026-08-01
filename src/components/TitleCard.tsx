@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import type { Title } from '../types';
 import { TMDB_POSTER_BASE } from '../lib/tmdb';
+import { useHousehold } from '../context/HouseholdContext';
+import { useMembers } from '../hooks/useMembers';
 
 interface TitleCardProps {
   title: Title;
@@ -10,6 +12,9 @@ interface TitleCardProps {
 
 export function TitleCard({ title, action, footer }: TitleCardProps) {
   const navigate = useNavigate();
+  const { household } = useHousehold();
+  const { members } = useMembers(household?.id);
+  const addedByName = members.find((m) => m.id === title.addedBy)?.displayName;
 
   return (
     <div
@@ -41,11 +46,12 @@ export function TitleCard({ title, action, footer }: TitleCardProps) {
           {title.genre.length ? ` · ${title.genre.slice(0, 2).join(', ')}` : ''}
         </p>
         {title.summary && <p className="title-card-summary">{title.summary}</p>}
-        {title.status === 'watched' && title.watchedAt && (
-          <p className="title-card-meta">
-            Watched {new Date(title.watchedAt).toLocaleDateString()}
-          </p>
-        )}
+        <p className="title-card-meta title-card-added-by">
+          {title.status === 'watched' && title.watchedAt
+            ? `Watched ${new Date(title.watchedAt).toLocaleDateString()} · `
+            : ''}
+          Added by {addedByName ?? 'someone'}
+        </p>
         {footer}
       </div>
       {action && (

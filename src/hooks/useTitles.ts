@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { firestoreErrorMessage } from '../lib/errorMessages';
 import type { Title, TitleStatus } from '../types';
 
 export function useTitles(householdId: string | undefined, status: TitleStatus) {
@@ -54,7 +55,7 @@ export function useTitles(householdId: string | undefined, status: TitleStatus) 
       },
       (err) => {
         console.error('[titles] snapshot error:', err);
-        setError(err.code === 'permission-denied' ? 'Firestore rejected this request.' : `Could not load titles (${err.code}).`);
+        setError(firestoreErrorMessage(err.code));
         setLoading(false);
       },
     );

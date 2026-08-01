@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
+import { firestoreErrorMessage } from '../lib/errorMessages';
 import type { Household, RatingMode } from '../types';
 
 interface HouseholdContextValue {
@@ -66,9 +67,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
       },
       (err) => {
         console.error('[household] snapshot error:', err);
-        setError(err.code === 'permission-denied'
-          ? 'Firestore rejected this request — have the security rules been deployed? (firebase deploy --only firestore:rules)'
-          : `Could not load household (${err.code}).`);
+        setError(firestoreErrorMessage(err.code));
         setLoading(false);
       },
     );

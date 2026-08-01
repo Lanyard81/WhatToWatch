@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useHousehold } from '../context/HouseholdContext';
@@ -7,6 +8,8 @@ import { useTitles } from '../hooks/useTitles';
 import { useViewMode } from '../hooks/useViewMode';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
+import { PageHeader } from '../components/PageHeader';
+import { SkeletonList } from '../components/Skeleton';
 import type { Title } from '../types';
 
 type SortMode = 'added' | 'alpha' | 'runtime';
@@ -17,13 +20,15 @@ function todayInputValue() {
 }
 
 export function WantToWatchPage() {
+  const navigate = useNavigate();
   const { household } = useHousehold();
   const { titles, loading, error } = useTitles(household?.id, 'want_to_watch');
   const { pendingIds } = usePendingDelete();
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
   const [sortMode, setSortMode] = useState<SortMode>('added');
-  const [viewMode, setViewMode] = useViewMode('want_to_watch');
+  const [viewMode, setViewMode] = useViewMode('want_to_watch', 'carousel');
+  const [celebration, setCelebration] = useState<string | null>(null);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [runtimeCap, setRuntimeCap] = useState<RuntimeCap>('any');
@@ -42,14 +47,16 @@ export function WantToWatchPage() {
     setWatchedDate(todayInputValue());
   }
 
-  async function confirmWatched() {
-    if (!household || !markingId) return;
+  async function confirmWatched(title: Title) {
+    if (!household) return;
     const watchedAtMillis = new Date(`${watchedDate}T12:00:00`).getTime();
-    await updateDoc(doc(db, 'households', household.id, 'titles', markingId), {
+    await updateDoc(doc(db, 'households', household.id, 'titles', title.id), {
       status: 'watched',
       watchedAt: Timestamp.fromMillis(watchedAtMillis),
     });
     setMarkingId(null);
+    setCelebration(`🎬 "${title.name}" marked as watched`);
+    setTimeout(() => setCelebration(null), 2500);
   }
 
   async function startWatching(title: Title) {
@@ -73,7 +80,7 @@ export function WantToWatchPage() {
 
   return (
     <div className="page">
-      <h1>Want to Watch</h1>
+      <PageHeader title="Want to Watch" />
 
       <div className="picker-block">
         <button type="button" className="secondary" onClick={() => setPickerOpen((v) => !v)}>
@@ -98,25 +105,33 @@ export function WantToWatchPage() {
 
       {error && <p className="error">{error}</p>}
 
+      {loading && <SkeletonList count={3} />}
+
       {!loading && !error && visibleTitles.length === 0 && (
-        <p className="empty-state">Nothing on your list yet — search to add something.</p>
+        <div className="empty-state-card">
+          <span className="empty-state-icon" aria-hidden="true">🍿</span>
+          <p>Nothing on your list yet.</p>
+          <button type="button" onClick={() => navigate('/search')}>
+            Search for something
+          </button>
+        </div>
       )}
 
       {visibleTitles.length > 0 && (
         <div className="view-toggle" role="group" aria-label="View style">
           <button
             type="button"
-            className={viewMode === 'list' ? 'active' : ''}
-            onClick={() => setViewMode('list')}
-          >
-            ☰ List
-          </button>
-          <button
-            type="button"
             className={viewMode === 'carousel' ? 'active' : ''}
             onClick={() => setViewMode('carousel')}
           >
             ▭▭ Posters
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+          >
+            ☰ List
           </button>
         </div>
       )}
@@ -147,7 +162,7 @@ export function WantToWatchPage() {
                         value={watchedDate}
                         onChange={(e) => setWatchedDate(e.target.value)}
                       />
-                      <button type="button" onClick={confirmWatched}>
+                      <button type="button" onClick={() => confirmWatched(title)}>
                         Confirm
                       </button>
                       <button type="button" className="secondary" onClick={() => setMarkingId(null)}>
@@ -169,6 +184,12 @@ export function WantToWatchPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {celebration && (
+        <div className="toast toast-positive">
+          <span>{celebration}</span>
+        </div>
       )}
     </div>
   );
