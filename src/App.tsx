@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HouseholdProvider, useHousehold } from './context/HouseholdContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { BottomNav } from './components/BottomNav';
 import { LoginPage } from './pages/LoginPage';
 import { HouseholdSetupPage } from './pages/HouseholdSetupPage';
@@ -8,6 +9,7 @@ import { SearchPage } from './pages/SearchPage';
 import { WantToWatchPage } from './pages/WantToWatchPage';
 import { WatchedPage } from './pages/WatchedPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { TitleDetailPage } from './pages/TitleDetailPage';
 
 function AppShell() {
   const { user, loading: authLoading } = useAuth();
@@ -40,6 +42,7 @@ function AppShell() {
           <Route path="/" element={<WantToWatchPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/watched" element={<WatchedPage />} />
+          <Route path="/title/:titleId" element={<TitleDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -52,11 +55,13 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <AuthProvider>
-        <HouseholdProvider>
-          <AppShell />
-        </HouseholdProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <HouseholdProvider>
+            <AppShell />
+          </HouseholdProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

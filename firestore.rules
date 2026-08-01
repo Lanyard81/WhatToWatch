@@ -39,7 +39,11 @@ service cloud.firestore {
 
         match /ratings/{ratingId} {
           allow read: if isHouseholdMember(householdId);
-          allow write: if isHouseholdMember(householdId);
+          // The doc ID is either 'shared' (anyone in the household can update
+          // the single household rating) or a member's own uid (only they
+          // can write their individual rating).
+          allow write: if isHouseholdMember(householdId) &&
+            (ratingId == 'shared' || ratingId == request.auth.uid);
         }
       }
 

@@ -30,6 +30,76 @@
   }
 }
 
+/* Manual theme override (Settings → Appearance) wins over the OS preference in either direction. */
+:root[data-theme='light'] {
+  --text: #4b4553;
+  --text-h: #08060d;
+  --bg: #fff;
+  --bg-card: #faf9fb;
+  --border: #e5e4e7;
+}
+
+:root[data-theme='dark'] {
+  --text: #b5b0bd;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --bg-card: #1d1e26;
+  --border: #2e303a;
+}
+
+/* Accent presets — light-mode values; dark-mode variants below. */
+:root[data-accent='purple'] {
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+}
+:root[data-accent='blue'] {
+  --accent: #2f7dff;
+  --accent-bg: rgba(47, 125, 255, 0.1);
+}
+:root[data-accent='green'] {
+  --accent: #22b573;
+  --accent-bg: rgba(34, 181, 115, 0.1);
+}
+:root[data-accent='rose'] {
+  --accent: #e63b7a;
+  --accent-bg: rgba(230, 59, 122, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-accent='purple'] {
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+  }
+  :root[data-accent='blue'] {
+    --accent: #6ea3ff;
+    --accent-bg: rgba(110, 163, 255, 0.15);
+  }
+  :root[data-accent='green'] {
+    --accent: #4bd696;
+    --accent-bg: rgba(75, 214, 150, 0.15);
+  }
+  :root[data-accent='rose'] {
+    --accent: #f06ea0;
+    --accent-bg: rgba(240, 110, 160, 0.15);
+  }
+}
+:root[data-theme='dark'][data-accent='purple'] {
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+}
+:root[data-theme='dark'][data-accent='blue'] {
+  --accent: #6ea3ff;
+  --accent-bg: rgba(110, 163, 255, 0.15);
+}
+:root[data-theme='dark'][data-accent='green'] {
+  --accent: #4bd696;
+  --accent-bg: rgba(75, 214, 150, 0.15);
+}
+:root[data-theme='dark'][data-accent='rose'] {
+  --accent: #f06ea0;
+  --accent-bg: rgba(240, 110, 160, 0.15);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -291,6 +361,12 @@ code {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg-card);
+  cursor: pointer;
+}
+
+.title-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .title-card-poster {
@@ -397,5 +473,167 @@ code {
   color: var(--text);
   text-align: center;
   padding: 40px 16px;
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+button.danger-text {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Watched list filter bar */
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-bar select {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+/* Title detail page */
+
+.back-button {
+  margin-bottom: 16px;
+}
+
+.detail-page section {
+  margin-top: 24px;
+}
+
+.detail-header {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.detail-poster {
+  width: 120px;
+  height: 180px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.detail-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-header h1 {
+  font-size: 20px;
+  margin: 6px 0;
+}
+
+.rating-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rating-pick {
+  min-width: 34px;
+  padding: 6px 0;
+  font-size: 13px;
+  text-align: center;
+}
+
+.rating-pick.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.individual-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.individual-rating-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tag-chip {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.tag-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.tag-input-row button {
+  flex-shrink: 0;
+}
+
+/* Appearance settings */
+
+.appearance-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.swatch-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.swatch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.radio-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.radio-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.radio-row input[type='radio'] {
+  width: auto;
 }
 

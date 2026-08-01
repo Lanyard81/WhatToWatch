@@ -1,14 +1,26 @@
+import { useNavigate } from 'react-router-dom';
 import type { Title } from '../types';
 import { TMDB_POSTER_BASE } from '../lib/tmdb';
 
 interface TitleCardProps {
   title: Title;
   action?: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
-export function TitleCard({ title, action }: TitleCardProps) {
+export function TitleCard({ title, action, footer }: TitleCardProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className="title-card">
+    <div
+      className="title-card"
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/title/${title.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') navigate(`/title/${title.id}`);
+      }}
+    >
       <div className="title-card-poster">
         {title.posterPath ? (
           <img src={`${TMDB_POSTER_BASE}${title.posterPath}`} alt="" loading="lazy" />
@@ -34,8 +46,13 @@ export function TitleCard({ title, action }: TitleCardProps) {
             Watched {new Date(title.watchedAt).toLocaleDateString()}
           </p>
         )}
+        {footer}
       </div>
-      {action && <div className="title-card-action">{action}</div>}
+      {action && (
+        <div className="title-card-action" onClick={(e) => e.stopPropagation()}>
+          {action}
+        </div>
+      )}
     </div>
   );
 }

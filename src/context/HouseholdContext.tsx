@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import {
   collection,
   doc,
+  getDoc,
   onSnapshot,
   query,
   serverTimestamp,
@@ -12,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
-import type { Household } from '../types';
+import type { Household, RatingMode } from '../types';
 
 interface HouseholdContextValue {
   household: Household | null;
@@ -20,6 +21,7 @@ interface HouseholdContextValue {
   error: string | null;
   createHousehold: (name: string) => Promise<void>;
   addMemberByUid: (uid: string) => Promise<void>;
+  updateRatingMode: (mode: RatingMode) => Promise<void>;
 }
 
 const HouseholdContext = createContext<HouseholdContextValue | undefined>(undefined);
@@ -70,6 +72,21 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, [user]);
 
+  // Someone added to memberIds by another member has no /members doc yet
+  // (that write requires the invitee's own uid). Create it once discovered.
+  useEffect(() => {
+    if (!user || !household) return;
+    const memberRef = doc(db, 'households', household.id, 'members', user.uid);
+    getDoc(memberRef).then((snap) => {
+      if (!snap.exists()) {
+        setDoc(memberRef, {
+          displayName: user.displayName ?? user.email ?? 'Member',
+          joinedAt: serverTimestamp(),
+        });
+      }
+    });
+  }, [user, household]);
+
   async function createHousehold(name: string) {
     if (!user) throw new Error('Not signed in');
     const ref = doc(collection(db, 'households'));
@@ -80,7 +97,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
       memberIds: [user.uid],
     });
     await setDoc(doc(db, 'households', ref.id, 'members', user.uid), {
-      displayName: user.email ?? 'Member',
+      displayName: user.displayName ?? user.email ?? 'Member',
       joinedAt: serverTimestamp(),
     });
   }
@@ -92,8 +109,15 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  async function updateRatingMode(mode: RatingMode) {
+    if (!household) throw new Error('No household');
+    await updateDoc(doc(db, 'households', household.id), { ratingMode: mode });
+  }
+
   return (
-    <HouseholdContext.Provider value={{ household, loading, error, createHousehold, addMemberByUid }}>
+    <HouseholdContext.Provider
+      value={{ household, loading, error, createHousehold, addMemberByUid, updateRatingMode }}
+    >
       {children}
     </HouseholdContext.Provider>
   );
