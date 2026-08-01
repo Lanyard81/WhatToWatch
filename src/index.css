@@ -408,13 +408,12 @@ code {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  /* Break out of .page's 16px side padding so the active poster sits flush
-     with it, and peeking neighbours can reach the screen edge. */
+  /* Break out of .page's 16px side padding so peeking neighbours can reach the screen edge. */
   margin: 0 -16px 8px;
-  padding: 4px 16px 16px;
+  padding: 4px 44px 16px;
   list-style: none;
   scroll-snap-type: x mandatory;
-  scroll-padding: 0 16px;
+  scroll-padding: 0 44px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -454,12 +453,7 @@ code {
 }
 
 .poster-tile-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  width: fit-content;
 }
 
 .poster-tile-title {

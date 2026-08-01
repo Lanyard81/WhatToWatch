@@ -14,15 +14,15 @@ export function PosterCarousel({ titles }: { titles: Title[] }) {
             className="poster-tile"
             onClick={() => navigate(`/title/${title.id}`)}
           >
-            <span className={`badge badge-${title.mediaType} poster-tile-badge`}>
-              {title.mediaType === 'movie' ? 'Movie' : 'TV'}
-            </span>
             <span className="poster-tile-image">
               {title.posterPath ? (
                 <img src={`${TMDB_POSTER_BASE}${title.posterPath}`} alt={title.name} loading="lazy" />
               ) : (
                 <span className="poster-placeholder" aria-hidden="true" />
               )}
+            </span>
+            <span className={`badge badge-${title.mediaType} poster-tile-badge`}>
+              {title.mediaType === 'movie' ? 'Movie' : 'TV'}
             </span>
             <span className="poster-tile-title">{title.name}</span>
           </button>
