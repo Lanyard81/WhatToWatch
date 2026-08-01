@@ -136,7 +136,7 @@ export function WantToWatchPage() {
         </div>
       )}
 
-      {visibleTitles.length > 0 && viewMode === 'list' && (
+      {visibleTitles.length > 0 && (
         <div className="filter-bar">
           <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)}>
             <option value="added">Sort: Recently added</option>
@@ -188,7 +188,7 @@ export function WantToWatchPage() {
 
       {celebration && (
         <div className="toast toast-positive">
-          <span>{celebration}</span>
+          <span className="toast-message">{celebration}</span>
         </div>
       )}
     </div>

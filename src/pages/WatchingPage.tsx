@@ -11,6 +11,8 @@ import { PageHeader } from '../components/PageHeader';
 import { SkeletonList } from '../components/Skeleton';
 import type { Title } from '../types';
 
+type SortMode = 'added' | 'alpha' | 'runtime';
+
 function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -23,8 +25,14 @@ export function WatchingPage() {
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
   const [viewMode, setViewMode] = useViewMode('watching', 'carousel');
   const [celebration, setCelebration] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>('added');
 
-  const visibleTitles = useMemo(() => titles.filter((t) => !pendingIds.has(t.id)), [titles, pendingIds]);
+  const visibleTitles = useMemo(() => {
+    const list = titles.filter((t) => !pendingIds.has(t.id));
+    if (sortMode === 'alpha') return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    if (sortMode === 'runtime') return [...list].sort((a, b) => (a.runtimeMinutes ?? 999) - (b.runtimeMinutes ?? 999));
+    return list;
+  }, [titles, pendingIds, sortMode]);
 
   function startMarking(title: Title) {
     setMarkingId(title.id);
@@ -84,6 +92,16 @@ export function WatchingPage() {
         </div>
       )}
 
+      {visibleTitles.length > 0 && (
+        <div className="filter-bar">
+          <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)}>
+            <option value="added">Sort: Recently added</option>
+            <option value="alpha">Sort: A–Z</option>
+            <option value="runtime">Sort: Shortest first</option>
+          </select>
+        </div>
+      )}
+
       {viewMode === 'carousel' && visibleTitles.length > 0 ? (
         <PosterCarousel titles={visibleTitles} />
       ) : (
@@ -126,7 +144,7 @@ export function WatchingPage() {
 
       {celebration && (
         <div className="toast toast-positive">
-          <span>{celebration}</span>
+          <span className="toast-message">{celebration}</span>
         </div>
       )}
     </div>

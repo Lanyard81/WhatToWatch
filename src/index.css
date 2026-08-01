@@ -156,6 +156,114 @@
   --pressed: inset 0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
+/* ============================================================
+   Colour schemes — swap the primary (green-role) and accent
+   (mustard-role) hues over the same neutral scale as Olive Grove.
+   "olive" is the default and needs no override block. Each of these
+   was verified the same way as the base tokens: primary vs onPrimary,
+   accent vs card (both themes), accent vs its soft badge tint (both
+   themes), and onAccent vs the FAB fill (both themes) — every pairing
+   cleared 4.5:1, most well past it. See commit message for the numbers.
+   Green/onAccent stay fixed across light/dark within a scheme (same
+   pattern as Olive Grove's own --green); mustard/mustard-soft/accent-
+   text/note-text vary by theme, same as Olive Grove's --mustard. */
+
+:root[data-scheme='terracotta'] {
+  --ov-green: #8a3b24;
+  --ov-green-deep: #6b2c1a;
+  --ov-on-accent: #241a05;
+}
+:root[data-scheme='terracotta'] {
+  --ov-mustard: #c98a2e;
+  --ov-mustard-soft: #f0dfb8;
+  --ov-accent-text: #7a5a12;
+  --ov-note-text: #7a5a12;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-scheme='terracotta'] {
+    --ov-mustard: #d89a3e;
+    --ov-mustard-soft: #453615;
+    --ov-accent-text: #e8c27c;
+    --ov-note-text: #e8c27c;
+  }
+}
+:root[data-scheme='terracotta'][data-theme='dark'] {
+  --ov-mustard: #d89a3e;
+  --ov-mustard-soft: #453615;
+  --ov-accent-text: #e8c27c;
+  --ov-note-text: #e8c27c;
+}
+:root[data-scheme='terracotta'][data-theme='light'] {
+  --ov-mustard: #c98a2e;
+  --ov-mustard-soft: #f0dfb8;
+  --ov-accent-text: #7a5a12;
+  --ov-note-text: #7a5a12;
+}
+
+:root[data-scheme='indigo'] {
+  --ov-green: #33395a;
+  --ov-green-deep: #232945;
+  --ov-on-accent: #201705;
+}
+:root[data-scheme='indigo'] {
+  --ov-mustard: #c6952f;
+  --ov-mustard-soft: #efdfb6;
+  --ov-accent-text: #7e5210;
+  --ov-note-text: #7e5210;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-scheme='indigo'] {
+    --ov-mustard: #d9a84e;
+    --ov-mustard-soft: #3a2e10;
+    --ov-accent-text: #e0b966;
+    --ov-note-text: #e0b966;
+  }
+}
+:root[data-scheme='indigo'][data-theme='dark'] {
+  --ov-mustard: #d9a84e;
+  --ov-mustard-soft: #3a2e10;
+  --ov-accent-text: #e0b966;
+  --ov-note-text: #e0b966;
+}
+:root[data-scheme='indigo'][data-theme='light'] {
+  --ov-mustard: #c6952f;
+  --ov-mustard-soft: #efdfb6;
+  --ov-accent-text: #7e5210;
+  --ov-note-text: #7e5210;
+}
+
+:root[data-scheme='rosewood'] {
+  --ov-green: #5c2a3d;
+  --ov-green-deep: #45202e;
+  --ov-on-accent: #241205;
+}
+:root[data-scheme='rosewood'] {
+  --ov-mustard: #c97b4a;
+  --ov-mustard-soft: #f0dcc8;
+  --ov-accent-text: #8a4a2e;
+  --ov-note-text: #8a4a2e;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-scheme='rosewood'] {
+    --ov-mustard: #d9945f;
+    --ov-mustard-soft: #3d2818;
+    --ov-accent-text: #e0a374;
+    --ov-note-text: #e0a374;
+  }
+}
+:root[data-scheme='rosewood'][data-theme='dark'] {
+  --ov-mustard: #d9945f;
+  --ov-mustard-soft: #3d2818;
+  --ov-accent-text: #e0a374;
+  --ov-note-text: #e0a374;
+}
+:root[data-scheme='rosewood'][data-theme='light'] {
+  --ov-mustard: #c97b4a;
+  --ov-mustard-soft: #f0dcc8;
+  --ov-accent-text: #8a4a2e;
+  --ov-note-text: #8a4a2e;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -766,6 +874,23 @@ code {
   gap: 10px;
 }
 
+.search-results li[role='button'] {
+  cursor: pointer;
+}
+
+.selected-person-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-size: var(--text-sm);
+}
+
 .search-result {
   display: flex;
   align-items: center;
@@ -1243,6 +1368,22 @@ button.danger-text {
   margin-bottom: 16px;
 }
 
+.swatch-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.swatch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid var(--border);
+}
+
 .radio-row {
   display: flex;
   flex-direction: column;
@@ -1265,22 +1406,29 @@ button.danger-text {
 
 .toast {
   position: fixed;
-  left: 16px;
-  right: 16px;
+  left: 50%;
   bottom: calc(64px + env(safe-area-inset-bottom));
-  max-width: 608px;
-  margin: 0 auto;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(340px, calc(100vw - 32px));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
-  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
   background: var(--text-h);
   color: var(--bg);
   box-shadow: var(--elev2);
   z-index: 20;
   animation: toast-in 0.15s ease-out;
+}
+
+.toast-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
 }
 
 .toast-positive {
@@ -1298,11 +1446,11 @@ button.danger-text {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateX(-50%) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 

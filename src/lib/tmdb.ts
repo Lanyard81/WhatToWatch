@@ -59,6 +59,71 @@ interface TmdbDetails {
   episode_run_time?: number[];
 }
 
+export interface TmdbPerson {
+  id: number;
+  name: string;
+  profilePath: string | null;
+  knownFor: string;
+}
+
+interface TmdbRawPerson {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for?: TmdbRawResult[];
+}
+
+export async function searchPeople(query: string, signal?: AbortSignal): Promise<TmdbPerson[]> {
+  if (!query.trim()) return [];
+
+  const url = new URL(`${TMDB_BASE_URL}/search/person`);
+  url.searchParams.set('api_key', TMDB_API_KEY);
+  url.searchParams.set('query', query);
+  url.searchParams.set('include_adult', 'false');
+
+  const res = await fetch(url.toString(), { signal });
+  if (!res.ok) throw new Error(`TMDB person search failed: ${res.status}`);
+
+  const data = (await res.json()) as { results: TmdbRawPerson[] };
+  return data.results.map((p) => ({
+    id: p.id,
+    name: p.name,
+    profilePath: p.profile_path,
+    knownFor: (p.known_for ?? [])
+      .map((k) => k.title ?? k.name)
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(', '),
+  }));
+}
+
+interface TmdbCreditsResponse {
+  cast: (TmdbRawResult & { popularity?: number })[];
+}
+
+export async function personCredits(personId: number, signal?: AbortSignal): Promise<TmdbSearchResult[]> {
+  const url = new URL(`${TMDB_BASE_URL}/person/${personId}/combined_credits`);
+  url.searchParams.set('api_key', TMDB_API_KEY);
+
+  const res = await fetch(url.toString(), { signal });
+  if (!res.ok) throw new Error(`TMDB person credits failed: ${res.status}`);
+
+  const data = (await res.json()) as TmdbCreditsResponse;
+  const seen = new Set<string>();
+  const results: TmdbSearchResult[] = [];
+
+  for (const raw of data.cast.sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))) {
+    const converted = toSearchResult(raw);
+    if (!converted) continue;
+    const key = `${converted.mediaType}-${converted.tmdbId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push(converted);
+  }
+
+  return results;
+}
+
 export async function fetchTitleDetails(
   tmdbId: number,
   mediaType: MediaType,

@@ -59,7 +59,7 @@ export function PendingDeleteProvider({ children }: { children: ReactNode }) {
       {children}
       {toast && (
         <div className="toast">
-          <span>Deleted "{toast.titleName}"</span>
+          <span className="toast-message">Deleted "{toast.titleName}"</span>
           <button type="button" className="secondary" onClick={() => undo(toast.titleId)}>
             Undo
           </button>

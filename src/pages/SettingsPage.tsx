@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { useMembers } from '../hooks/useMembers';
-import { useTheme, type ThemeMode } from '../context/ThemeContext';
+import { useTheme, SCHEMES, type ThemeMode } from '../context/ThemeContext';
 import { ImportHistorySection } from '../components/ImportHistorySection';
 import { BulkAddSection } from '../components/BulkAddSection';
 import { PageHeader } from '../components/PageHeader';
@@ -13,7 +13,7 @@ export function SettingsPage() {
   const { user, logout } = useAuth();
   const { household, addMemberByUid, updateRatingMode, leaveHousehold } = useHousehold();
   const { members } = useMembers(household?.id);
-  const { theme, setTheme } = useTheme();
+  const { theme, scheme, setTheme, setScheme } = useTheme();
   const [uid, setUid] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -121,6 +121,20 @@ export function SettingsPage() {
               onClick={() => setTheme(mode)}
             >
               {mode === 'system' ? 'System' : mode === 'light' ? 'Light' : 'Dark'}
+            </button>
+          ))}
+        </div>
+        <p className="hint">Colour scheme</p>
+        <div className="appearance-row">
+          {SCHEMES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={scheme === s.id ? 'swatch-button' : 'swatch-button secondary'}
+              onClick={() => setScheme(s.id)}
+            >
+              <span className="swatch-dot" style={{ background: s.swatch }} />
+              {s.label}
             </button>
           ))}
         </div>
