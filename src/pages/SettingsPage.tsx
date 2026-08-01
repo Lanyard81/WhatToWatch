@@ -5,6 +5,7 @@ import { useHousehold } from '../context/HouseholdContext';
 import { useMembers } from '../hooks/useMembers';
 import { useTheme, ACCENTS, type ThemeMode } from '../context/ThemeContext';
 import { ImportHistorySection } from '../components/ImportHistorySection';
+import { BulkAddSection } from '../components/BulkAddSection';
 import { PageHeader } from '../components/PageHeader';
 import type { RatingMode } from '../types';
 
@@ -146,6 +147,7 @@ export function SettingsPage() {
             View stats →
           </button>
         </Link>
+        <BulkAddSection />
         <ImportHistorySection />
 
         <details className="advanced-disclosure">
