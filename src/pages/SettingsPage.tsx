@@ -1,12 +1,16 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
+import { useMembers } from '../hooks/useMembers';
 import { useTheme, ACCENTS, type ThemeMode } from '../context/ThemeContext';
+import { ImportHistorySection } from '../components/ImportHistorySection';
 import type { RatingMode } from '../types';
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
   const { household, addMemberByUid, updateRatingMode } = useHousehold();
+  const { members } = useMembers(household?.id);
   const { theme, accent, setTheme, setAccent } = useTheme();
   const [uid, setUid] = useState('');
   const [status, setStatus] = useState<string | null>(null);
@@ -33,9 +37,14 @@ export function SettingsPage() {
 
       <section>
         <h2>{household?.name}</h2>
-        <p className="hint">
-          {household?.memberIds.length ?? 0} member{household?.memberIds.length === 1 ? '' : 's'}
-        </p>
+        <ul className="member-list">
+          {(household?.memberIds ?? []).map((id) => (
+            <li key={id}>
+              {members.find((m) => m.id === id)?.displayName ?? 'Member'}
+              {id === user?.uid ? ' (you)' : ''}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section>
@@ -92,6 +101,16 @@ export function SettingsPage() {
           ))}
         </div>
       </section>
+
+      <section>
+        <Link to="/stats">
+          <button type="button" className="secondary">
+            View stats →
+          </button>
+        </Link>
+      </section>
+
+      <ImportHistorySection />
 
       <section>
         <h3>Add a household member</h3>

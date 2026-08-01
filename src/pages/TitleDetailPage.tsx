@@ -1,17 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { arrayRemove, arrayUnion, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
+import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitle } from '../hooks/useTitle';
 import { useMembers } from '../hooks/useMembers';
 import { useRatings, setRating, SHARED_RATING_DOC_ID } from '../hooks/useRatings';
 import { useHouseholdTags, upsertHouseholdTag } from '../hooks/useHouseholdTags';
 import { TMDB_POSTER_BASE } from '../lib/tmdb';
+import { TagInput } from '../components/TagInput';
 
 function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function listPathFor(status: string) {
+  if (status === 'watching') return '/watching';
+  if (status === 'watched') return '/watched';
+  return '/';
 }
 
 export function TitleDetailPage() {
@@ -23,12 +31,18 @@ export function TitleDetailPage() {
   const { members } = useMembers(household?.id);
   const { ratings } = useRatings(household?.id, titleId);
   const householdTags = useHouseholdTags(household?.id);
+  const { requestDelete } = usePendingDelete();
 
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
   const [marking, setMarking] = useState(false);
-  const [tagInput, setTagInput] = useState('');
+  const [notes, setNotes] = useState('');
+  const [notesDirty, setNotesDirty] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (title && !notesDirty) setNotes(title.notes ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title?.id, title?.notes]);
 
   const memberNames = useMemo(() => {
     const map = new Map<string, string>();
@@ -60,6 +74,7 @@ export function TitleDetailPage() {
   }
 
   const titleRef = doc(db, 'households', household.id, 'titles', title.id);
+  const backTo = listPathFor(title.status);
 
   async function confirmMarkWatched() {
     const watchedAtMillis = new Date(`${watchedDate}T12:00:00`).getTime();
@@ -74,26 +89,23 @@ export function TitleDetailPage() {
     await updateDoc(titleRef, { wouldRewatch: !title!.wouldRewatch });
   }
 
-  async function addTag() {
-    const trimmed = tagInput.trim();
-    if (!trimmed) return;
-    await updateDoc(titleRef, { tags: arrayUnion(trimmed) });
-    await upsertHouseholdTag(household!.id, trimmed);
-    setTagInput('');
+  async function addTag(tag: string) {
+    await updateDoc(titleRef, { tags: arrayUnion(tag) });
+    await upsertHouseholdTag(household!.id, tag);
   }
 
   async function removeTag(tag: string) {
     await updateDoc(titleRef, { tags: arrayRemove(tag) });
   }
 
-  async function handleDelete() {
-    setDeleting(true);
-    try {
-      await deleteDoc(titleRef);
-      navigate(title!.status === 'watched' ? '/watched' : '/', { replace: true });
-    } finally {
-      setDeleting(false);
-    }
+  async function saveNotes() {
+    await updateDoc(titleRef, { notes });
+    setNotesDirty(false);
+  }
+
+  function handleDelete() {
+    requestDelete(household!.id, title!.id, title!.name);
+    navigate(backTo, { replace: true });
   }
 
   async function handleRate(docId: string, memberId: string | null, value: number) {
@@ -105,14 +117,14 @@ export function TitleDetailPage() {
 
   return (
     <div className="page detail-page">
-      <button type="button" className="secondary back-button" onClick={() => navigate(-1)}>
+      <button type="button" className="secondary back-button" onClick={() => navigate(backTo)}>
         ← Back
       </button>
 
       <div className="detail-header">
         <div className="detail-poster">
           {title.posterPath ? (
-            <img src={`${TMDB_POSTER_BASE}${title.posterPath}`} alt="" />
+            <img src={`${TMDB_POSTER_BASE}${title.posterPath}`} alt={title.name} />
           ) : (
             <div className="poster-placeholder" aria-hidden="true" />
           )}
@@ -132,12 +144,13 @@ export function TitleDetailPage() {
               Watched {new Date(title.watchedAt).toLocaleDateString()}
             </p>
           )}
+          {title.status === 'watching' && <p className="title-card-meta">Currently watching</p>}
         </div>
       </div>
 
       {title.summary && <p>{title.summary}</p>}
 
-      {title.status === 'want_to_watch' && (
+      {(title.status === 'want_to_watch' || title.status === 'watching') && (
         <section>
           {marking ? (
             <div className="watched-confirm">
@@ -202,39 +215,32 @@ export function TitleDetailPage() {
                 </button>
               ))}
             </div>
-            <div className="tag-input-row">
-              <input
-                type="text"
-                list="household-tags"
-                placeholder="Add a tag…"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTag();
-                  }
-                }}
-              />
-              <datalist id="household-tags">
-                {householdTags.map((t) => (
-                  <option key={t} value={t} />
-                ))}
-              </datalist>
-              <button type="button" onClick={addTag}>
-                Add
-              </button>
-            </div>
+            <TagInput suggestions={householdTags} onAdd={addTag} />
           </section>
         </>
       )}
 
       <section>
+        <h3>Notes</h3>
+        <textarea
+          className="notes-input"
+          rows={3}
+          placeholder="Any thoughts worth remembering…"
+          value={notes}
+          onChange={(e) => {
+            setNotes(e.target.value);
+            setNotesDirty(true);
+          }}
+          onBlur={() => notesDirty && saveNotes()}
+        />
+      </section>
+
+      <section>
         {confirmingDelete ? (
           <div className="watched-confirm">
             <p className="error">Delete "{title.name}" from the list?</p>
-            <button type="button" className="danger" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+            <button type="button" className="danger" onClick={handleDelete}>
+              Delete
             </button>
             <button type="button" className="secondary" onClick={() => setConfirmingDelete(false)}>
               Cancel
@@ -252,11 +258,13 @@ export function TitleDetailPage() {
 
 function RatingPicker({ value, onPick }: { value: number | null; onPick: (value: number) => void }) {
   return (
-    <div className="rating-picker">
+    <div className="rating-picker" role="group" aria-label="Rating out of 10">
       {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
         <button
           key={n}
           type="button"
+          aria-label={`Rate ${n} out of 10`}
+          aria-pressed={n === value}
           className={n === value ? 'rating-pick active' : 'rating-pick secondary'}
           onClick={() => onPick(n)}
         >

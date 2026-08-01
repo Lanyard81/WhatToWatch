@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
+import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
 import { useRatings, SHARED_RATING_DOC_ID } from '../hooks/useRatings';
 import { TitleCard } from '../components/TitleCard';
@@ -11,12 +12,16 @@ type SortMode = 'date' | 'rating';
 export function WatchedPage() {
   const { user } = useAuth();
   const { household } = useHousehold();
-  const { titles, loading, error } = useTitles(household?.id, 'watched');
+  const { titles: rawTitles, loading, error } = useTitles(household?.id, 'watched');
+  const { pendingIds } = usePendingDelete();
 
   const [sortMode, setSortMode] = useState<SortMode>('date');
   const [tagFilter, setTagFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [ratingsByTitle, setRatingsByTitle] = useState<Record<string, number | null>>({});
+  const [copied, setCopied] = useState(false);
+
+  const titles = useMemo(() => rawTitles.filter((t) => !pendingIds.has(t.id)), [rawTitles, pendingIds]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -38,6 +43,17 @@ export function WatchedPage() {
     }
     return list;
   }, [titles, tagFilter, minRating, sortMode, ratingsByTitle]);
+
+  async function exportAsText() {
+    const lines = displayedTitles.map((t) => {
+      const rating = ratingsByTitle[t.id];
+      const parts = [t.name, t.year ? `(${t.year})` : null, rating != null ? `${rating}/10` : null];
+      return parts.filter(Boolean).join(' ');
+    });
+    await navigator.clipboard.writeText(lines.join('\n'));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <div className="page">
@@ -71,6 +87,9 @@ export function WatchedPage() {
               </option>
             ))}
           </select>
+          <button type="button" className="secondary" onClick={exportAsText}>
+            {copied ? 'Copied!' : 'Copy as text'}
+          </button>
         </div>
       )}
 

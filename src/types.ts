@@ -1,6 +1,6 @@
 export type RatingMode = 'shared' | 'individual';
 export type MediaType = 'movie' | 'tv';
-export type TitleStatus = 'want_to_watch' | 'watched';
+export type TitleStatus = 'want_to_watch' | 'watching' | 'watched';
 
 export interface Household {
   id: string;
@@ -32,6 +32,7 @@ export interface Title {
   addedAt: number;
   tags: string[];
   wouldRewatch: boolean;
+  notes: string;
 }
 
 export interface Rating {

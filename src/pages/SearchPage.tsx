@@ -1,21 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { searchTitles, fetchTitleDetails, TMDB_POSTER_BASE } from '../lib/tmdb';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
-import type { TmdbSearchResult } from '../types';
+import { useExistingTmdbIds } from '../hooks/useExistingTmdbIds';
+import type { MediaType, TmdbSearchResult } from '../types';
 
 const DEBOUNCE_MS = 300;
+
+const STATUS_LABEL: Record<string, string> = {
+  want_to_watch: 'On your list',
+  watching: 'Currently watching',
+  watched: 'Already watched',
+};
 
 export function SearchPage() {
   const { user } = useAuth();
   const { household } = useHousehold();
+  const existingTmdbIds = useExistingTmdbIds(household?.id);
   const [query, setQuery] = useState('');
+  const [mediaFilter, setMediaFilter] = useState<'all' | MediaType>('all');
   const [results, setResults] = useState<TmdbSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [addingId, setAddingId] = useState<number | null>(null);
-  const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -45,6 +53,11 @@ export function SearchPage() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  const filteredResults = useMemo(
+    () => (mediaFilter === 'all' ? results : results.filter((r) => r.mediaType === mediaFilter)),
+    [results, mediaFilter],
+  );
+
   async function handleAdd(result: TmdbSearchResult) {
     if (!household || !user) return;
     setAddingId(result.tmdbId);
@@ -65,8 +78,8 @@ export function SearchPage() {
         addedAt: serverTimestamp(),
         tags: [],
         wouldRewatch: false,
+        notes: '',
       });
-      setAddedIds((prev) => new Set(prev).add(result.tmdbId));
     } finally {
       setAddingId(null);
     }
@@ -75,23 +88,43 @@ export function SearchPage() {
   return (
     <div className="page">
       <h1>Add a title</h1>
-      <input
-        type="search"
-        className="search-input"
-        placeholder="Search movies and TV shows…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        autoFocus
-      />
+      <div className="search-input-row">
+        <input
+          type="search"
+          className="search-input"
+          placeholder="Search movies and TV shows…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          autoFocus
+        />
+        {query && (
+          <button type="button" className="secondary clear-button" onClick={() => setQuery('')} aria-label="Clear search">
+            ✕
+          </button>
+        )}
+      </div>
+
+      <div className="filter-bar">
+        {(['all', 'movie', 'tv'] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={mediaFilter === f ? '' : 'secondary'}
+            onClick={() => setMediaFilter(f)}
+          >
+            {f === 'all' ? 'All' : f === 'movie' ? 'Movies' : 'TV'}
+          </button>
+        ))}
+      </div>
 
       {searching && <p className="hint">Searching…</p>}
-      {!searching && query.trim() && results.length === 0 && (
+      {!searching && query.trim() && filteredResults.length === 0 && (
         <p className="hint">No results for "{query}".</p>
       )}
 
       <ul className="search-results">
-        {results.map((r) => {
-          const isAdded = addedIds.has(r.tmdbId);
+        {filteredResults.map((r) => {
+          const existingStatus = existingTmdbIds.get(r.tmdbId);
           const isAdding = addingId === r.tmdbId;
           return (
             <li key={`${r.mediaType}-${r.tmdbId}`} className="search-result">
@@ -109,14 +142,15 @@ export function SearchPage() {
                 <p className="search-result-title">
                   {r.name} {r.year ? <span className="hint">({r.year})</span> : null}
                 </p>
+                {existingStatus && <p className="hint">{STATUS_LABEL[existingStatus] ?? 'Already added'}</p>}
               </div>
               <button
                 type="button"
                 onClick={() => handleAdd(r)}
-                disabled={isAdding || isAdded}
+                disabled={isAdding || !!existingStatus}
                 className="add-button"
               >
-                {isAdded ? 'Added' : isAdding ? 'Adding…' : 'Add'}
+                {existingStatus ? 'Added' : isAdding ? 'Adding…' : 'Add'}
               </button>
             </li>
           );
