@@ -22,6 +22,7 @@ interface HouseholdContextValue {
   createHousehold: (name: string) => Promise<void>;
   addMemberByUid: (uid: string) => Promise<void>;
   updateRatingMode: (mode: RatingMode) => Promise<void>;
+  joinHousehold: (householdId: string) => Promise<void>;
 }
 
 const HouseholdContext = createContext<HouseholdContextValue | undefined>(undefined);
@@ -114,9 +115,16 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     await updateDoc(doc(db, 'households', household.id), { ratingMode: mode });
   }
 
+  async function joinHousehold(householdId: string) {
+    if (!user) throw new Error('Not signed in');
+    await updateDoc(doc(db, 'households', householdId), {
+      memberIds: arrayUnion(user.uid),
+    });
+  }
+
   return (
     <HouseholdContext.Provider
-      value={{ household, loading, error, createHousehold, addMemberByUid, updateRatingMode }}
+      value={{ household, loading, error, createHousehold, addMemberByUid, updateRatingMode, joinHousehold }}
     >
       {children}
     </HouseholdContext.Provider>

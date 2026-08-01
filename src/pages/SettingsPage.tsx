@@ -15,6 +15,17 @@ export function SettingsPage() {
   const [uid, setUid] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const inviteLink = household
+    ? `${window.location.origin}${import.meta.env.BASE_URL}join/${household.id}`
+    : '';
+
+  async function copyInviteLink() {
+    await navigator.clipboard.writeText(inviteLink);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
 
   async function handleAddMember(e: FormEvent) {
     e.preventDefault();
@@ -113,10 +124,28 @@ export function SettingsPage() {
       <ImportHistorySection />
 
       <section>
-        <h3>Add a household member</h3>
+        <h3>Invite someone</h3>
         <p className="hint">
-          Ask them to sign in once so their account exists, share their user ID with you, then
-          add it below.
+          Share this link — anyone who opens it can sign in and join "{household?.name}"
+          straight away, no account setup needed on your end.
+        </p>
+        <div className="invite-link-row">
+          <input type="text" readOnly value={inviteLink} onFocus={(e) => e.target.select()} />
+          <button type="button" onClick={copyInviteLink}>
+            {linkCopied ? 'Copied!' : 'Copy link'}
+          </button>
+        </div>
+        <p className="hint">
+          Anyone with this link can join, so only share it with people you trust — there's no way
+          to remove a member yet.
+        </p>
+      </section>
+
+      <section>
+        <h3>Add by user ID</h3>
+        <p className="hint">
+          Fallback if sharing a link isn't convenient: they sign in once so their account exists,
+          share their user ID with you, then add it below.
         </p>
         <form onSubmit={handleAddMember} className="auth-form">
           <label>

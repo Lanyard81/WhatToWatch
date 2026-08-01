@@ -355,6 +355,21 @@ code {
   gap: 4px;
 }
 
+.invite-link-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.invite-link-row input {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.invite-link-row button {
+  flex-shrink: 0;
+}
+
 /* Random picker */
 
 .picker-block {

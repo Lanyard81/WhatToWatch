@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HouseholdProvider, useHousehold } from './context/HouseholdContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -6,6 +6,7 @@ import { PendingDeleteProvider } from './context/PendingDeleteContext';
 import { BottomNav } from './components/BottomNav';
 import { LoginPage } from './pages/LoginPage';
 import { HouseholdSetupPage } from './pages/HouseholdSetupPage';
+import { JoinPage } from './pages/JoinPage';
 import { SearchPage } from './pages/SearchPage';
 import { WantToWatchPage } from './pages/WantToWatchPage';
 import { WatchingPage } from './pages/WatchingPage';
@@ -15,8 +16,20 @@ import { TitleDetailPage } from './pages/TitleDetailPage';
 import { StatsPage } from './pages/StatsPage';
 
 function AppShell() {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { household, loading: householdLoading, error: householdError } = useHousehold();
+
+  // Reachable before sign-in and before a household is set up — JoinPage
+  // manages its own auth/household states rather than sharing the gates below.
+  // Routed explicitly (rather than just rendered) so useParams() binds :householdId.
+  if (location.pathname.startsWith('/join/')) {
+    return (
+      <Routes>
+        <Route path="/join/:householdId" element={<JoinPage />} />
+      </Routes>
+    );
+  }
 
   if (authLoading) {
     return <div className="centered-screen">Loading…</div>;
