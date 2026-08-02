@@ -493,6 +493,9 @@ code {
    (a low-frequency action that doesn't deserve a tab or thumb-reach
    bottom-nav real estate) pinned to the top-right corner. */
 .top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -500,8 +503,9 @@ code {
   gap: 12px;
   max-width: 640px;
   margin: 0 auto;
-  padding: 14px 16px 0;
+  padding: 14px 16px 8px;
   box-sizing: border-box;
+  background: var(--bg);
 }
 
 .top-bar-titles {
@@ -1453,7 +1457,11 @@ button.danger-text {
 /* Title detail page */
 
 .back-button {
+  position: sticky;
+  top: var(--top-bar-height, 76px);
+  z-index: 9;
   margin-bottom: 16px;
+  background: var(--bg);
 }
 
 .pending-delete-banner {
