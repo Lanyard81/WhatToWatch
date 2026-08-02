@@ -4,15 +4,25 @@ import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { useMembers } from '../hooks/useMembers';
 import { useTheme, SCHEMES, type ThemeMode } from '../context/ThemeContext';
+import { useDefaultViewMode } from '../hooks/useDefaultViewMode';
+import type { ViewMode } from '../hooks/useViewMode';
 import { ImportHistorySection } from '../components/ImportHistorySection';
 import { BulkAddSection } from '../components/BulkAddSection';
+import { icons } from '../components/icons';
 import type { RatingMode } from '../types';
+
+const VIEW_MODE_OPTIONS: { id: ViewMode; label: string }[] = [
+  { id: 'carousel', label: 'Posters' },
+  { id: 'list', label: 'List' },
+  { id: 'shelf', label: 'Shelf' },
+];
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
   const { household, addMemberByUid, updateRatingMode, renameHousehold, leaveHousehold } = useHousehold();
   const { members } = useMembers(household?.id);
   const { theme, scheme, setTheme, setScheme } = useTheme();
+  const [defaultViewMode, setDefaultViewMode] = useDefaultViewMode();
   const [uid, setUid] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -166,6 +176,25 @@ export function SettingsPage() {
             >
               <span className="swatch-dot" style={{ background: s.swatch }} />
               {s.label}
+            </button>
+          ))}
+        </div>
+
+        <p className="hint">Default view</p>
+        <p className="hint">
+          Which view each list opens in the first time — Want to Watch, Watching, and Watched all
+          remember your choice separately after that.
+        </p>
+        <div className="view-toggle" role="group" aria-label="Default view">
+          {VIEW_MODE_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              aria-label={opt.label}
+              className={defaultViewMode === opt.id ? 'active' : ''}
+              onClick={() => setDefaultViewMode(opt.id)}
+            >
+              {opt.id === 'carousel' ? icons.posters : opt.id === 'list' ? icons.list : icons.grid}
             </button>
           ))}
         </div>

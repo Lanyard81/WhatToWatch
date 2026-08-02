@@ -7,6 +7,7 @@ import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
 import { useViewMode } from '../hooks/useViewMode';
+import { useDefaultViewMode } from '../hooks/useDefaultViewMode';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
 import { PosterShelf } from '../components/PosterShelf';
@@ -14,7 +15,7 @@ import { SkeletonList } from '../components/Skeleton';
 import { icons } from '../components/icons';
 import type { Title } from '../types';
 
-type SortMode = 'added' | 'alpha' | 'runtime';
+type SortMode = 'added' | 'alpha' | 'runtime' | 'mypicks';
 type RuntimeCap = 'any' | '30' | '60' | '120';
 type PickScope = 'everyone' | 'justme';
 
@@ -31,7 +32,8 @@ export function WantToWatchPage() {
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
   const [sortMode, setSortMode] = useState<SortMode>('added');
-  const [viewMode, setViewMode] = useViewMode('want_to_watch', 'carousel');
+  const [defaultViewMode] = useDefaultViewMode();
+  const [viewMode, setViewMode] = useViewMode('want_to_watch', defaultViewMode);
   const [celebration, setCelebration] = useState<string | null>(null);
 
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -57,6 +59,11 @@ export function WantToWatchPage() {
     if (listQuery.trim()) {
       const q = listQuery.trim().toLowerCase();
       list = list.filter((t) => t.name.toLowerCase().includes(q));
+    }
+    // "My picks" is a filter, not a reorder — everything left has already
+    // passed the "not opted out by me" check, so nothing's left to sink.
+    if (sortMode === 'mypicks') {
+      list = list.filter((t) => !passedByMe(t));
     }
 
     function bySortMode(a: Title, b: Title) {
@@ -183,6 +190,7 @@ export function WantToWatchPage() {
                     <option value="added">Recently added</option>
                     <option value="alpha">A–Z</option>
                     <option value="runtime">Shortest first</option>
+                    <option value="mypicks">My picks</option>
                   </select>
                 </div>
               </>

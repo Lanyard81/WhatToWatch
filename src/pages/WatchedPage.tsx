@@ -4,6 +4,7 @@ import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
 import { useViewMode } from '../hooks/useViewMode';
+import { useDefaultViewMode } from '../hooks/useDefaultViewMode';
 import { useRatings, SHARED_RATING_DOC_ID } from '../hooks/useRatings';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
@@ -26,7 +27,8 @@ export function WatchedPage() {
   const [minRating, setMinRating] = useState(0);
   const [ratingsByTitle, setRatingsByTitle] = useState<Record<string, number | null>>({});
   const [copied, setCopied] = useState(false);
-  const [viewMode, setViewMode] = useViewMode('watched', 'list');
+  const [defaultViewMode] = useDefaultViewMode();
+  const [viewMode, setViewMode] = useViewMode('watched', defaultViewMode);
 
   const titles = useMemo(() => rawTitles.filter((t) => !pendingIds.has(t.id)), [rawTitles, pendingIds]);
 

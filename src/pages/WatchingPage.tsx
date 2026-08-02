@@ -5,6 +5,7 @@ import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
 import { useViewMode } from '../hooks/useViewMode';
+import { useDefaultViewMode } from '../hooks/useDefaultViewMode';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
 import { PosterShelf } from '../components/PosterShelf';
@@ -25,7 +26,8 @@ export function WatchingPage() {
   const { pendingIds } = usePendingDelete();
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [watchedDate, setWatchedDate] = useState(todayInputValue());
-  const [viewMode, setViewMode] = useViewMode('watching', 'carousel');
+  const [defaultViewMode] = useDefaultViewMode();
+  const [viewMode, setViewMode] = useViewMode('watching', defaultViewMode);
   const [celebration, setCelebration] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('added');
 
