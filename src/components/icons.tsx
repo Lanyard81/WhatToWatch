@@ -67,6 +67,15 @@ export const icons = {
       <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </svg>
   ),
+  sort: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 6h8" />
+      <path d="M4 12h5" />
+      <path d="M4 18h2" />
+      <path d="M17 4v16" />
+      <path d="M13 8l4-4 4 4" />
+    </svg>
+  ),
 };
 
 export type IconName = keyof typeof icons;

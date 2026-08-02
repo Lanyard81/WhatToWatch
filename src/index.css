@@ -496,14 +496,17 @@ code {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  width: 100%;
   gap: 12px;
   max-width: 640px;
   margin: 0 auto;
   padding: 14px 16px 0;
+  box-sizing: border-box;
 }
 
 .top-bar-titles {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .top-bar-eyebrow {
@@ -816,7 +819,7 @@ code {
   scroll-snap-align: start;
   scroll-snap-stop: normal;
   flex-shrink: 0;
-  width: 42%;
+  width: 74%;
 }
 
 .poster-tile {
@@ -914,14 +917,19 @@ code {
   line-height: 1.25;
 }
 
-/* Quick tools row — compact icon buttons (random pick, search-your-list)
-   so they don't eat vertical space the way a full-width text button did. */
+/* Controls row — random-pick, search-your-list, view toggle, and sort all
+   share one compact row of icon-sized controls, instead of three stacked
+   rows of full-width elements. */
 
-.quick-tools-row {
+.controls-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.controls-row .view-toggle {
+  margin-bottom: 0;
 }
 
 .icon-button {
@@ -989,6 +997,52 @@ code {
   background: transparent;
   width: 32px;
   height: 32px;
+}
+
+/* Icon-only sort control — a real <select> sits transparently on top of a
+   styled icon button, so it stays a native, accessible dropdown while
+   taking up no more room than the other icon controls in the row. */
+
+.icon-select {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.icon-select-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  pointer-events: none;
+}
+
+.icon-select-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.icon-select:focus-within .icon-select-icon {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 /* Random picker */

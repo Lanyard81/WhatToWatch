@@ -93,7 +93,7 @@ export function WantToWatchPage() {
 
   return (
     <div className="page">
-      <div className="quick-tools-row">
+      <div className="controls-row">
         {!searchOpen && (
           <>
             <button
@@ -113,6 +113,50 @@ export function WantToWatchPage() {
             >
               {icons.search}
             </button>
+            {visibleTitles.length > 0 && (
+              <>
+                <div className="view-toggle" role="group" aria-label="View style">
+                  <button
+                    type="button"
+                    aria-label="Posters view"
+                    className={viewMode === 'carousel' ? 'active' : ''}
+                    onClick={() => setViewMode('carousel')}
+                  >
+                    {icons.posters}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="List view"
+                    className={viewMode === 'list' ? 'active' : ''}
+                    onClick={() => setViewMode('list')}
+                  >
+                    {icons.list}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Shelf view"
+                    className={viewMode === 'shelf' ? 'active' : ''}
+                    onClick={() => setViewMode('shelf')}
+                  >
+                    {icons.grid}
+                  </button>
+                </div>
+                <div className="icon-select">
+                  <span className="icon-select-icon" aria-hidden="true">
+                    {icons.sort}
+                  </span>
+                  <select
+                    aria-label="Sort"
+                    value={sortMode}
+                    onChange={(e) => setSortMode(e.target.value as SortMode)}
+                  >
+                    <option value="added">Recently added</option>
+                    <option value="alpha">A–Z</option>
+                    <option value="runtime">Shortest first</option>
+                  </select>
+                </div>
+              </>
+            )}
           </>
         )}
         {searchOpen && (
@@ -163,45 +207,6 @@ export function WantToWatchPage() {
           <button type="button" onClick={() => navigate('/search')}>
             Search for something
           </button>
-        </div>
-      )}
-
-      {visibleTitles.length > 0 && (
-        <div className="view-toggle" role="group" aria-label="View style">
-          <button
-            type="button"
-            aria-label="Posters view"
-            className={viewMode === 'carousel' ? 'active' : ''}
-            onClick={() => setViewMode('carousel')}
-          >
-            {icons.posters}
-          </button>
-          <button
-            type="button"
-            aria-label="List view"
-            className={viewMode === 'list' ? 'active' : ''}
-            onClick={() => setViewMode('list')}
-          >
-            {icons.list}
-          </button>
-          <button
-            type="button"
-            aria-label="Shelf view"
-            className={viewMode === 'shelf' ? 'active' : ''}
-            onClick={() => setViewMode('shelf')}
-          >
-            {icons.grid}
-          </button>
-        </div>
-      )}
-
-      {visibleTitles.length > 0 && (
-        <div className="filter-bar">
-          <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)}>
-            <option value="added">Sort: Recently added</option>
-            <option value="alpha">Sort: A–Z</option>
-            <option value="runtime">Sort: Shortest first</option>
-          </select>
         </div>
       )}
 
