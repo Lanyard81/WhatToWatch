@@ -72,7 +72,8 @@ export function SignInForm() {
         </button>
       </form>
       <p className="hint">
-        Accounts are created in the Firebase console — this app doesn't support public sign-up.
+        New here? Just enter an email and a password (6+ characters) above and hit Sign in — it'll
+        create your account automatically.
       </p>
     </>
   );

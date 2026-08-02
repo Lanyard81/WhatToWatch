@@ -3,6 +3,7 @@ const AUTH_MESSAGES: Record<string, string> = {
   'auth/wrong-password': "That password isn't right. Try again.",
   'auth/user-not-found': "We couldn't find an account with that email.",
   'auth/invalid-email': "That doesn't look like a valid email address.",
+  'auth/weak-password': 'Password should be at least 6 characters.',
   'auth/too-many-requests': 'Too many attempts — wait a bit and try again.',
   'auth/popup-closed-by-user': '', // user-cancelled, not an error worth showing
   'auth/cancelled-popup-request': '',

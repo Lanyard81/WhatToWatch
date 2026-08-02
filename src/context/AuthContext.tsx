@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import {
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -32,7 +33,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    await signInWithEmailAndPassword(auth, email, password);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      // Modern Firebase Auth returns 'invalid-credential' for both "no such
+      // account" and "wrong password" (to avoid leaking which one it is), so
+      // we can't tell them apart from the sign-in error alone. Instead, try
+      // creating the account — that only succeeds if the email genuinely
+      // isn't registered yet, which gives first-time users a Google-like
+      // "just works" sign-in without a separate sign-up step. If creation
+      // fails because the email IS already in use, the original failure was
+      // really a wrong password, so we surface that instead.
+      if (code !== 'auth/user-not-found' && code !== 'auth/invalid-credential') throw err;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (createErr) {
+        const createCode = (createErr as { code?: string }).code;
+        if (createCode === 'auth/email-already-in-use') throw err;
+        throw createErr;
+      }
+    }
   }
 
   async function loginWithGoogle() {
