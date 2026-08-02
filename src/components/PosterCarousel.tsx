@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import type { Title } from '../types';
 import { TMDB_POSTER_BASE } from '../lib/tmdb';
 
-export function PosterCarousel({ titles }: { titles: Title[] }) {
+export function PosterCarousel({ titles, dimmedIds }: { titles: Title[]; dimmedIds?: Set<string> }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,7 +12,7 @@ export function PosterCarousel({ titles }: { titles: Title[] }) {
         <li key={title.id}>
           <button
             type="button"
-            className="poster-tile"
+            className={dimmedIds?.has(title.id) ? 'poster-tile dimmed' : 'poster-tile'}
             onClick={() => navigate(`/title/${title.id}`, { state: { from: location.pathname } })}
           >
             <span className="poster-tile-image">

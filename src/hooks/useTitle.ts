@@ -42,6 +42,7 @@ export function useTitle(householdId: string | undefined, titleId: string | unde
             tags: data.tags ?? [],
             wouldRewatch: data.wouldRewatch ?? false,
             notes: data.notes ?? '',
+            optedOut: data.optedOut ?? [],
           } satisfies Title);
         }
         setLoading(false);

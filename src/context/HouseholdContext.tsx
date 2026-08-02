@@ -25,6 +25,7 @@ interface HouseholdContextValue {
   createHousehold: (name: string) => Promise<void>;
   addMemberByUid: (uid: string) => Promise<void>;
   updateRatingMode: (mode: RatingMode) => Promise<void>;
+  renameHousehold: (name: string) => Promise<void>;
   joinHousehold: (householdId: string) => Promise<void>;
   leaveHousehold: () => Promise<void>;
 }
@@ -117,6 +118,11 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     await updateDoc(doc(db, 'households', household.id), { ratingMode: mode });
   }
 
+  async function renameHousehold(name: string) {
+    if (!household) throw new Error('No household');
+    await updateDoc(doc(db, 'households', household.id), { name });
+  }
+
   async function joinHousehold(householdId: string) {
     if (!user) throw new Error('Not signed in');
     await updateDoc(doc(db, 'households', householdId), {
@@ -143,6 +149,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         createHousehold,
         addMemberByUid,
         updateRatingMode,
+        renameHousehold,
         joinHousehold,
         leaveHousehold,
       }}

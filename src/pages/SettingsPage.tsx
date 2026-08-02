@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
@@ -10,7 +10,7 @@ import type { RatingMode } from '../types';
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
-  const { household, addMemberByUid, updateRatingMode, leaveHousehold } = useHousehold();
+  const { household, addMemberByUid, updateRatingMode, renameHousehold, leaveHousehold } = useHousehold();
   const { members } = useMembers(household?.id);
   const { theme, scheme, setTheme, setScheme } = useTheme();
   const [uid, setUid] = useState('');
@@ -19,6 +19,29 @@ export function SettingsPage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [leaving, setLeaving] = useState(false);
+
+  const [nameDraft, setNameDraft] = useState(household?.name ?? '');
+  const [savingName, setSavingName] = useState(false);
+  const [nameSaved, setNameSaved] = useState(false);
+
+  useEffect(() => {
+    setNameDraft(household?.name ?? '');
+  }, [household?.name]);
+
+  const nameDirty = nameDraft.trim() !== '' && nameDraft.trim() !== household?.name;
+
+  async function handleRenameHousehold(e: FormEvent) {
+    e.preventDefault();
+    if (!nameDirty) return;
+    setSavingName(true);
+    try {
+      await renameHousehold(nameDraft.trim());
+      setNameSaved(true);
+      setTimeout(() => setNameSaved(false), 2000);
+    } finally {
+      setSavingName(false);
+    }
+  }
 
   const inviteLink = household
     ? `${window.location.origin}${import.meta.env.BASE_URL}join/${household.id}`
@@ -58,7 +81,18 @@ export function SettingsPage() {
   return (
     <div className="page settings-page">
       <div className="settings-card">
-        <h2>{household?.name}</h2>
+        <form onSubmit={handleRenameHousehold} className="rename-household-row">
+          <input
+            type="text"
+            aria-label="Household name"
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            required
+          />
+          <button type="submit" className="secondary" disabled={!nameDirty || savingName}>
+            {savingName ? 'Saving…' : nameSaved ? 'Saved!' : 'Rename'}
+          </button>
+        </form>
         <ul className="member-list">
           {(household?.memberIds ?? []).map((id) => (
             <li key={id}>

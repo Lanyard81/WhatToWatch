@@ -766,6 +766,23 @@ code {
   flex-shrink: 0;
 }
 
+.rename-household-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rename-household-row input {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.rename-household-row button {
+  flex-shrink: 0;
+}
+
 /* View toggle */
 
 .view-toggle {
@@ -915,6 +932,13 @@ code {
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.25;
+}
+
+/* Dims a title you've personally passed on (see the "Who's in?" section
+   on the detail page) — sinks to the end of your own Want to Watch view
+   regardless of sort mode, but stays full-opacity for anyone else. */
+.dimmed {
+  opacity: 0.5;
 }
 
 /* Controls row — random-pick, search-your-list, view toggle, and sort all
@@ -1512,6 +1536,28 @@ button.danger-text {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.opt-in-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.opt-in-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.opt-in-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.opt-in-toggle button {
+  padding: 6px 14px;
 }
 
 .tag-list {

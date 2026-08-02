@@ -33,6 +33,7 @@ export interface Title {
   tags: string[];
   wouldRewatch: boolean;
   notes: string;
+  optedOut: string[];
 }
 
 export interface Rating {

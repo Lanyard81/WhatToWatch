@@ -103,6 +103,13 @@ export function TitleDetailPage() {
     await updateDoc(titleRef, { wouldRewatch: !title!.wouldRewatch });
   }
 
+  async function setWantsToWatch(wants: boolean) {
+    if (!user) return;
+    await updateDoc(titleRef, {
+      optedOut: wants ? arrayRemove(user.uid) : arrayUnion(user.uid),
+    });
+  }
+
   async function addTag(tag: string) {
     await updateDoc(titleRef, { tags: arrayUnion(tag) });
     await upsertHouseholdTag(household!.id, tag);
@@ -194,6 +201,47 @@ export function TitleDetailPage() {
               Mark watched
             </button>
           )}
+        </section>
+      )}
+
+      {title.status === 'want_to_watch' && (
+        <section>
+          <h3>Who's in?</h3>
+          <p className="hint">
+            Everyone's assumed in until they say otherwise — say no and it'll fade to the bottom
+            of your own Want to Watch list, without affecting anyone else's.
+          </p>
+          <div className="opt-in-list">
+            {household.memberIds.map((memberId) => {
+              const isOptedOut = title.optedOut.includes(memberId);
+              const isMe = memberId === user?.uid;
+              return (
+                <div key={memberId} className="opt-in-row">
+                  <span className="hint">{memberNames.get(memberId) ?? (isMe ? 'You' : 'Member')}</span>
+                  {isMe ? (
+                    <div className="opt-in-toggle" role="group" aria-label="Do you want to watch this?">
+                      <button
+                        type="button"
+                        className={isOptedOut ? 'secondary' : ''}
+                        onClick={() => setWantsToWatch(true)}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        className={isOptedOut ? '' : 'secondary'}
+                        onClick={() => setWantsToWatch(false)}
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="hint">{isOptedOut ? 'Passed' : "Wants to watch"}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </section>
       )}
 

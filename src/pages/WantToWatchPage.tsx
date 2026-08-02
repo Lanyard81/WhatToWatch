@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { usePendingDelete } from '../context/PendingDeleteContext';
 import { useTitles } from '../hooks/useTitles';
@@ -15,6 +16,7 @@ import type { Title } from '../types';
 
 type SortMode = 'added' | 'alpha' | 'runtime';
 type RuntimeCap = 'any' | '30' | '60' | '120';
+type PickScope = 'everyone' | 'justme';
 
 function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
@@ -22,6 +24,7 @@ function todayInputValue() {
 
 export function WantToWatchPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { household } = useHousehold();
   const { titles, loading, error } = useTitles(household?.id, 'want_to_watch');
   const { pendingIds } = usePendingDelete();
@@ -33,6 +36,7 @@ export function WantToWatchPage() {
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [runtimeCap, setRuntimeCap] = useState<RuntimeCap>('any');
+  const [pickScope, setPickScope] = useState<PickScope>('everyone');
   const [pickedTitle, setPickedTitle] = useState<Title | null>(null);
   const [pickMessage, setPickMessage] = useState<string | null>(null);
 
@@ -44,16 +48,38 @@ export function WantToWatchPage() {
     setListQuery('');
   }
 
+  function passedByMe(title: Title) {
+    return !!user && title.optedOut.includes(user.uid);
+  }
+
   const visibleTitles = useMemo(() => {
     let list = titles.filter((t) => !pendingIds.has(t.id));
     if (listQuery.trim()) {
       const q = listQuery.trim().toLowerCase();
       list = list.filter((t) => t.name.toLowerCase().includes(q));
     }
-    if (sortMode === 'alpha') return [...list].sort((a, b) => a.name.localeCompare(b.name));
-    if (sortMode === 'runtime') return [...list].sort((a, b) => (a.runtimeMinutes ?? 999) - (b.runtimeMinutes ?? 999));
-    return list;
-  }, [titles, pendingIds, sortMode, listQuery]);
+
+    function bySortMode(a: Title, b: Title) {
+      if (sortMode === 'alpha') return a.name.localeCompare(b.name);
+      if (sortMode === 'runtime') return (a.runtimeMinutes ?? 999) - (b.runtimeMinutes ?? 999);
+      return 0;
+    }
+
+    // Titles I've passed on always sink to the end, regardless of sort mode.
+    return [...list].sort((a, b) => {
+      const aOut = passedByMe(a) ? 1 : 0;
+      const bOut = passedByMe(b) ? 1 : 0;
+      if (aOut !== bOut) return aOut - bOut;
+      return bySortMode(a, b);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [titles, pendingIds, sortMode, listQuery, user?.uid]);
+
+  const passedIds = useMemo(
+    () => new Set(visibleTitles.filter(passedByMe).map((t) => t.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [visibleTitles, user?.uid],
+  );
 
   function startMarking(title: Title) {
     setMarkingId(title.id);
@@ -81,7 +107,11 @@ export function WantToWatchPage() {
 
   function pickRandom() {
     const cap = runtimeCap === 'any' ? Infinity : Number(runtimeCap);
-    const pool = visibleTitles.filter((t) => (runtimeCap === 'any' ? true : (t.runtimeMinutes ?? Infinity) <= cap));
+    const pool = visibleTitles.filter((t) => {
+      if (runtimeCap !== 'any' && (t.runtimeMinutes ?? Infinity) > cap) return false;
+      if (pickScope === 'everyone') return t.optedOut.length === 0;
+      return !passedByMe(t);
+    });
     if (pool.length === 0) {
       setPickedTitle(null);
       setPickMessage('Nothing on your list fits that runtime.');
@@ -187,6 +217,10 @@ export function WantToWatchPage() {
               <option value="60">Under 1 hour</option>
               <option value="120">Under 2 hours</option>
             </select>
+            <select value={pickScope} onChange={(e) => setPickScope(e.target.value as PickScope)}>
+              <option value="everyone">Everyone's picks</option>
+              <option value="justme">Just mine</option>
+            </select>
             <button type="button" onClick={pickRandom}>
               {pickedTitle ? 'Pick again' : 'Pick for me'}
             </button>
@@ -211,13 +245,13 @@ export function WantToWatchPage() {
       )}
 
       {viewMode === 'carousel' ? (
-        <PosterCarousel titles={visibleTitles} />
+        <PosterCarousel titles={visibleTitles} dimmedIds={passedIds} />
       ) : viewMode === 'shelf' ? (
-        <PosterShelf titles={visibleTitles} />
+        <PosterShelf titles={visibleTitles} dimmedIds={passedIds} />
       ) : (
         <ul className="title-list">
           {visibleTitles.map((title) => (
-            <li key={title.id}>
+            <li key={title.id} className={passedIds.has(title.id) ? 'dimmed' : ''}>
               <TitleCard
                 title={title}
                 action={

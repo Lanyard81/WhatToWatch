@@ -48,6 +48,7 @@ export function useTitles(householdId: string | undefined, status: TitleStatus) 
               tags: data.tags ?? [],
               wouldRewatch: data.wouldRewatch ?? false,
               notes: data.notes ?? '',
+              optedOut: data.optedOut ?? [],
             } satisfies Title;
           }),
         );
