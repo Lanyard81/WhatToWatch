@@ -1,13 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
-export type ColorScheme = 'olive' | 'terracotta' | 'indigo' | 'rosewood';
+export type ColorScheme = 'olive' | 'terracotta' | 'indigo' | 'rosewood' | 'violet';
 
 export const SCHEMES: { id: ColorScheme; label: string; swatch: string }[] = [
   { id: 'olive', label: 'Olive Grove', swatch: '#33502f' },
   { id: 'terracotta', label: 'Terracotta', swatch: '#8a3b24' },
   { id: 'indigo', label: 'Indigo Dusk', swatch: '#33395a' },
   { id: 'rosewood', label: 'Rosewood', swatch: '#5c2a3d' },
+  { id: 'violet', label: 'Violet Dusk', swatch: '#5b2a86' },
 ];
 
 const THEME_KEY = 'whattowatch:theme';

@@ -7,8 +7,10 @@ import { useViewMode } from '../hooks/useViewMode';
 import { useRatings, SHARED_RATING_DOC_ID } from '../hooks/useRatings';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
+import { PosterShelf } from '../components/PosterShelf';
 import { PageHeader } from '../components/PageHeader';
 import { SkeletonList } from '../components/Skeleton';
+import { icons } from '../components/icons';
 import type { Title } from '../types';
 
 type SortMode = 'date' | 'rating';
@@ -62,7 +64,7 @@ export function WatchedPage() {
 
   return (
     <div className="page">
-      <PageHeader title="Watched" subtitle={titles.length ? `${titles.length} title${titles.length === 1 ? '' : 's'}` : undefined} />
+      <PageHeader subtitle={titles.length ? `${titles.length} title${titles.length === 1 ? '' : 's'}` : undefined} />
 
       {error && <p className="error">{error}</p>}
 
@@ -79,17 +81,27 @@ export function WatchedPage() {
         <div className="view-toggle" role="group" aria-label="View style">
           <button
             type="button"
-            className={viewMode === 'list' ? 'active' : ''}
-            onClick={() => setViewMode('list')}
-          >
-            ☰ List
-          </button>
-          <button
-            type="button"
+            aria-label="Posters view"
             className={viewMode === 'carousel' ? 'active' : ''}
             onClick={() => setViewMode('carousel')}
           >
-            ▭▭ Posters
+            {icons.posters}
+          </button>
+          <button
+            type="button"
+            aria-label="List view"
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+          >
+            {icons.list}
+          </button>
+          <button
+            type="button"
+            aria-label="Shelf view"
+            className={viewMode === 'shelf' ? 'active' : ''}
+            onClick={() => setViewMode('shelf')}
+          >
+            {icons.grid}
           </button>
         </div>
       )}
@@ -124,6 +136,8 @@ export function WatchedPage() {
 
       {viewMode === 'carousel' ? (
         <PosterCarousel titles={displayedTitles} />
+      ) : viewMode === 'shelf' ? (
+        <PosterShelf titles={displayedTitles} />
       ) : (
         <ul className="title-list">
           {displayedTitles.map((title) => (

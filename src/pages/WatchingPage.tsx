@@ -7,8 +7,10 @@ import { useTitles } from '../hooks/useTitles';
 import { useViewMode } from '../hooks/useViewMode';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
+import { PosterShelf } from '../components/PosterShelf';
 import { PageHeader } from '../components/PageHeader';
 import { SkeletonList } from '../components/Skeleton';
+import { icons } from '../components/icons';
 import type { Title } from '../types';
 
 type SortMode = 'added' | 'alpha' | 'runtime';
@@ -60,7 +62,7 @@ export function WatchingPage() {
 
   return (
     <div className="page">
-      <PageHeader title="Watching" subtitle="In progress right now" />
+      <PageHeader subtitle="In progress right now" />
 
       {error && <p className="error">{error}</p>}
 
@@ -77,17 +79,27 @@ export function WatchingPage() {
         <div className="view-toggle" role="group" aria-label="View style">
           <button
             type="button"
+            aria-label="Posters view"
             className={viewMode === 'carousel' ? 'active' : ''}
             onClick={() => setViewMode('carousel')}
           >
-            ▭▭ Posters
+            {icons.posters}
           </button>
           <button
             type="button"
+            aria-label="List view"
             className={viewMode === 'list' ? 'active' : ''}
             onClick={() => setViewMode('list')}
           >
-            ☰ List
+            {icons.list}
+          </button>
+          <button
+            type="button"
+            aria-label="Shelf view"
+            className={viewMode === 'shelf' ? 'active' : ''}
+            onClick={() => setViewMode('shelf')}
+          >
+            {icons.grid}
           </button>
         </div>
       )}
@@ -104,6 +116,8 @@ export function WatchingPage() {
 
       {viewMode === 'carousel' && visibleTitles.length > 0 ? (
         <PosterCarousel titles={visibleTitles} />
+      ) : viewMode === 'shelf' && visibleTitles.length > 0 ? (
+        <PosterShelf titles={visibleTitles} />
       ) : (
         <ul className="title-list">
           {visibleTitles.map((title) => (

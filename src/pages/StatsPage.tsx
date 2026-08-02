@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { useTitles } from '../hooks/useTitles';
 import { useWatchedRatingsMap } from '../hooks/useWatchedRatingsMap';
-import { PageHeader } from '../components/PageHeader';
 
 export function StatsPage() {
   const navigate = useNavigate();
@@ -51,7 +50,6 @@ export function StatsPage() {
       <button type="button" className="secondary back-button" onClick={() => navigate('/settings')}>
         ← Back
       </button>
-      <PageHeader title="Stats" />
 
       {stats.total === 0 ? (
         <div className="empty-state-card">

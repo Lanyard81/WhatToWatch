@@ -6,7 +6,6 @@ import { useMembers } from '../hooks/useMembers';
 import { useTheme, SCHEMES, type ThemeMode } from '../context/ThemeContext';
 import { ImportHistorySection } from '../components/ImportHistorySection';
 import { BulkAddSection } from '../components/BulkAddSection';
-import { PageHeader } from '../components/PageHeader';
 import type { RatingMode } from '../types';
 
 export function SettingsPage() {
@@ -58,8 +57,6 @@ export function SettingsPage() {
 
   return (
     <div className="page settings-page">
-      <PageHeader title="Settings" />
-
       <div className="settings-card">
         <h2>{household?.name}</h2>
         <ul className="member-list">

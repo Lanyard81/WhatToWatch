@@ -12,7 +12,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { useExistingTmdbIds } from '../hooks/useExistingTmdbIds';
-import { PageHeader } from '../components/PageHeader';
 import type { MediaType, TmdbSearchResult } from '../types';
 
 const DEBOUNCE_MS = 300;
@@ -153,8 +152,6 @@ export function SearchPage() {
 
   return (
     <div className="page">
-      <PageHeader title="Add a title" />
-
       <div className="filter-bar">
         <button type="button" className={mode === 'title' ? '' : 'secondary'} onClick={() => switchMode('title')}>
           Titles

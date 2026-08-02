@@ -8,8 +8,9 @@ import { useTitles } from '../hooks/useTitles';
 import { useViewMode } from '../hooks/useViewMode';
 import { TitleCard } from '../components/TitleCard';
 import { PosterCarousel } from '../components/PosterCarousel';
-import { PageHeader } from '../components/PageHeader';
+import { PosterShelf } from '../components/PosterShelf';
 import { SkeletonList } from '../components/Skeleton';
+import { icons } from '../components/icons';
 import type { Title } from '../types';
 
 type SortMode = 'added' | 'alpha' | 'runtime';
@@ -35,12 +36,24 @@ export function WantToWatchPage() {
   const [pickedTitle, setPickedTitle] = useState<Title | null>(null);
   const [pickMessage, setPickMessage] = useState<string | null>(null);
 
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [listQuery, setListQuery] = useState('');
+
+  function closeListSearch() {
+    setSearchOpen(false);
+    setListQuery('');
+  }
+
   const visibleTitles = useMemo(() => {
-    const list = titles.filter((t) => !pendingIds.has(t.id));
+    let list = titles.filter((t) => !pendingIds.has(t.id));
+    if (listQuery.trim()) {
+      const q = listQuery.trim().toLowerCase();
+      list = list.filter((t) => t.name.toLowerCase().includes(q));
+    }
     if (sortMode === 'alpha') return [...list].sort((a, b) => a.name.localeCompare(b.name));
     if (sortMode === 'runtime') return [...list].sort((a, b) => (a.runtimeMinutes ?? 999) - (b.runtimeMinutes ?? 999));
     return list;
-  }, [titles, pendingIds, sortMode]);
+  }, [titles, pendingIds, sortMode, listQuery]);
 
   function startMarking(title: Title) {
     setMarkingId(title.id);
@@ -80,13 +93,49 @@ export function WantToWatchPage() {
 
   return (
     <div className="page">
-      <PageHeader title="Want to Watch" />
+      <div className="quick-tools-row">
+        {!searchOpen && (
+          <>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="What should we watch tonight?"
+              aria-expanded={pickerOpen}
+              onClick={() => setPickerOpen((v) => !v)}
+            >
+              {icons.dice}
+            </button>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Search your list"
+              onClick={() => setSearchOpen(true)}
+            >
+              {icons.search}
+            </button>
+          </>
+        )}
+        {searchOpen && (
+          <div className="quick-search-expanded">
+            <span className="quick-search-icon" aria-hidden="true">
+              {icons.search}
+            </span>
+            <input
+              type="search"
+              autoFocus
+              placeholder="Search your list…"
+              value={listQuery}
+              onChange={(e) => setListQuery(e.target.value)}
+            />
+            <button type="button" className="icon-button" aria-label="Close search" onClick={closeListSearch}>
+              {icons.close}
+            </button>
+          </div>
+        )}
+      </div>
 
-      <div className="picker-block">
-        <button type="button" className="secondary" onClick={() => setPickerOpen((v) => !v)}>
-          🎲 What should we watch tonight?
-        </button>
-        {pickerOpen && (
+      {pickerOpen && (
+        <div className="picker-block">
           <div className="picker-panel">
             <select value={runtimeCap} onChange={(e) => setRuntimeCap(e.target.value as RuntimeCap)}>
               <option value="any">Any runtime</option>
@@ -100,8 +149,8 @@ export function WantToWatchPage() {
             {pickMessage && <p className="hint">{pickMessage}</p>}
             {pickedTitle && <TitleCard title={pickedTitle} />}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {error && <p className="error">{error}</p>}
 
@@ -121,17 +170,27 @@ export function WantToWatchPage() {
         <div className="view-toggle" role="group" aria-label="View style">
           <button
             type="button"
+            aria-label="Posters view"
             className={viewMode === 'carousel' ? 'active' : ''}
             onClick={() => setViewMode('carousel')}
           >
-            ▭▭ Posters
+            {icons.posters}
           </button>
           <button
             type="button"
+            aria-label="List view"
             className={viewMode === 'list' ? 'active' : ''}
             onClick={() => setViewMode('list')}
           >
-            ☰ List
+            {icons.list}
+          </button>
+          <button
+            type="button"
+            aria-label="Shelf view"
+            className={viewMode === 'shelf' ? 'active' : ''}
+            onClick={() => setViewMode('shelf')}
+          >
+            {icons.grid}
           </button>
         </div>
       )}
@@ -148,6 +207,8 @@ export function WantToWatchPage() {
 
       {viewMode === 'carousel' ? (
         <PosterCarousel titles={visibleTitles} />
+      ) : viewMode === 'shelf' ? (
+        <PosterShelf titles={visibleTitles} />
       ) : (
         <ul className="title-list">
           {visibleTitles.map((title) => (
