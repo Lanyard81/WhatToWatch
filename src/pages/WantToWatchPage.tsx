@@ -16,7 +16,7 @@ import { icons } from '../components/icons';
 import type { Title } from '../types';
 
 type SortMode = 'added' | 'alpha' | 'runtime' | 'mypicks';
-type RuntimeCap = 'any' | '30' | '60' | '120';
+type MediaFilter = 'any' | 'movie' | 'tv';
 type PickScope = 'everyone' | 'justme';
 
 function todayInputValue() {
@@ -37,7 +37,7 @@ export function WantToWatchPage() {
   const [celebration, setCelebration] = useState<string | null>(null);
 
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [runtimeCap, setRuntimeCap] = useState<RuntimeCap>('any');
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('any');
   const [pickScope, setPickScope] = useState<PickScope>('everyone');
   const [pickedTitle, setPickedTitle] = useState<Title | null>(null);
   const [pickMessage, setPickMessage] = useState<string | null>(null);
@@ -113,15 +113,14 @@ export function WantToWatchPage() {
   }
 
   function pickRandom() {
-    const cap = runtimeCap === 'any' ? Infinity : Number(runtimeCap);
     const pool = visibleTitles.filter((t) => {
-      if (runtimeCap !== 'any' && (t.runtimeMinutes ?? Infinity) > cap) return false;
+      if (mediaFilter !== 'any' && t.mediaType !== mediaFilter) return false;
       if (pickScope === 'everyone') return t.optedOut.length === 0;
       return !passedByMe(t);
     });
     if (pool.length === 0) {
       setPickedTitle(null);
-      setPickMessage('Nothing on your list fits that runtime.');
+      setPickMessage('Nothing on your list matches that.');
       return;
     }
     setPickMessage(null);
@@ -219,11 +218,10 @@ export function WantToWatchPage() {
       {pickerOpen && (
         <div className="picker-block">
           <div className="picker-panel">
-            <select value={runtimeCap} onChange={(e) => setRuntimeCap(e.target.value as RuntimeCap)}>
-              <option value="any">Any runtime</option>
-              <option value="30">Under 30 min</option>
-              <option value="60">Under 1 hour</option>
-              <option value="120">Under 2 hours</option>
+            <select value={mediaFilter} onChange={(e) => setMediaFilter(e.target.value as MediaFilter)}>
+              <option value="any">Movies or TV</option>
+              <option value="movie">Movies only</option>
+              <option value="tv">TV only</option>
             </select>
             <select value={pickScope} onChange={(e) => setPickScope(e.target.value as PickScope)}>
               <option value="everyone">Everyone's picks</option>
