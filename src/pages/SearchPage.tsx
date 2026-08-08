@@ -9,10 +9,10 @@ import {
   TMDB_POSTER_BASE,
   type TmdbPerson,
 } from '../lib/tmdb';
+import type { MediaType, TmdbSearchResult } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
 import { useExistingTmdbIds } from '../hooks/useExistingTmdbIds';
-import type { MediaType, TmdbSearchResult } from '../types';
 
 const DEBOUNCE_MS = 300;
 type SearchMode = 'title' | 'actor';
@@ -39,12 +39,34 @@ export function SearchPage() {
   const [selectedPerson, setSelectedPerson] = useState<TmdbPerson | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
 
+  const [previewResult, setPreviewResult] = useState<TmdbSearchResult | null>(null);
+  const [previewDetails, setPreviewDetails] = useState<{ genre: string[]; runtimeMinutes: number | null } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   function switchMode(next: SearchMode) {
     setMode(next);
     setQuery('');
     setResults([]);
     setPeople([]);
     setSelectedPerson(null);
+    setPreviewResult(null);
+  }
+
+  async function openPreview(result: TmdbSearchResult) {
+    setPreviewResult(result);
+    setPreviewDetails(null);
+    setPreviewLoading(true);
+    try {
+      const details = await fetchTitleDetails(result.tmdbId, result.mediaType);
+      setPreviewDetails(details);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  function closePreview() {
+    setPreviewResult(null);
+    setPreviewDetails(null);
   }
 
   // Title search (debounced).
@@ -150,6 +172,51 @@ export function SearchPage() {
 
   const showingPersonPicker = mode === 'actor' && !selectedPerson;
 
+  if (previewResult) {
+    const existingStatus = existingTmdbIds.get(previewResult.tmdbId);
+    const isAdding = addingId === previewResult.tmdbId;
+    return (
+      <div className="page">
+        <button type="button" className="secondary back-button" onClick={closePreview}>
+          ← Back to results
+        </button>
+
+        <div className="detail-header">
+          <div className="detail-poster">
+            {previewResult.posterPath ? (
+              <img src={`${TMDB_POSTER_BASE}${previewResult.posterPath}`} alt={previewResult.name} />
+            ) : (
+              <div className="poster-placeholder" aria-hidden="true" />
+            )}
+          </div>
+          <div>
+            <span className={`badge badge-${previewResult.mediaType}`}>
+              {previewResult.mediaType === 'movie' ? 'Movie' : 'TV'}
+            </span>
+            <h1>{previewResult.name}</h1>
+            <p className="title-card-meta">
+              {previewResult.year ?? '—'}
+              {previewDetails?.runtimeMinutes ? ` · ${previewDetails.runtimeMinutes} min` : ''}
+              {previewDetails?.genre.length ? ` · ${previewDetails.genre.join(', ')}` : ''}
+            </p>
+            {existingStatus && <p className="title-card-meta">{STATUS_LABEL[existingStatus] ?? 'Already added'}</p>}
+          </div>
+        </div>
+
+        {previewLoading && !previewDetails && <p className="hint">Loading details…</p>}
+        {previewResult.summary && <p>{previewResult.summary}</p>}
+
+        <button
+          type="button"
+          onClick={() => handleAdd(previewResult)}
+          disabled={isAdding || !!existingStatus}
+        >
+          {existingStatus ? 'Added' : isAdding ? 'Adding…' : 'Add to Want to Watch'}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="page">
       <div className="filter-bar">
@@ -237,7 +304,16 @@ export function SearchPage() {
               const existingStatus = existingTmdbIds.get(r.tmdbId);
               const isAdding = addingId === r.tmdbId;
               return (
-                <li key={`${r.mediaType}-${r.tmdbId}`} className="search-result">
+                <li
+                  key={`${r.mediaType}-${r.tmdbId}`}
+                  className="search-result"
+                  onClick={() => openPreview(r)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') openPreview(r);
+                  }}
+                >
                   <div className="search-result-poster">
                     {r.posterPath ? (
                       <img src={`${TMDB_POSTER_BASE}${r.posterPath}`} alt="" loading="lazy" />
@@ -256,7 +332,10 @@ export function SearchPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleAdd(r)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAdd(r);
+                    }}
                     disabled={isAdding || !!existingStatus}
                     className="add-button"
                   >
