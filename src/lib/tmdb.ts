@@ -53,10 +53,16 @@ interface TmdbGenre {
   name: string;
 }
 
+interface TmdbCastMember {
+  name: string;
+  order: number;
+}
+
 interface TmdbDetails {
   genres: TmdbGenre[];
   runtime?: number;
   episode_run_time?: number[];
+  credits?: { cast: TmdbCastMember[] };
 }
 
 export interface TmdbPerson {
@@ -127,9 +133,10 @@ export async function personCredits(personId: number, signal?: AbortSignal): Pro
 export async function fetchTitleDetails(
   tmdbId: number,
   mediaType: MediaType,
-): Promise<{ genre: string[]; runtimeMinutes: number | null }> {
+): Promise<{ genre: string[]; runtimeMinutes: number | null; cast: string[] }> {
   const url = new URL(`${TMDB_BASE_URL}/${mediaType}/${tmdbId}`);
   url.searchParams.set('api_key', TMDB_API_KEY);
+  url.searchParams.set('append_to_response', 'credits');
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`TMDB details failed: ${res.status}`);
@@ -140,6 +147,11 @@ export async function fetchTitleDetails(
     mediaType === 'movie'
       ? data.runtime ?? null
       : data.episode_run_time?.[0] ?? null;
+  const cast = (data.credits?.cast ?? [])
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 6)
+    .map((c) => c.name);
 
-  return { genre, runtimeMinutes };
+  return { genre, runtimeMinutes, cast };
 }

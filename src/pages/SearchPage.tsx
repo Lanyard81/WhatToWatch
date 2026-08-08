@@ -40,7 +40,11 @@ export function SearchPage() {
   const [creditsLoading, setCreditsLoading] = useState(false);
 
   const [previewResult, setPreviewResult] = useState<TmdbSearchResult | null>(null);
-  const [previewDetails, setPreviewDetails] = useState<{ genre: string[]; runtimeMinutes: number | null } | null>(null);
+  const [previewDetails, setPreviewDetails] = useState<{
+    genre: string[];
+    runtimeMinutes: number | null;
+    cast: string[];
+  } | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
   function switchMode(next: SearchMode) {
@@ -205,6 +209,11 @@ export function SearchPage() {
 
         {previewLoading && !previewDetails && <p className="hint">Loading details…</p>}
         {previewResult.summary && <p>{previewResult.summary}</p>}
+        {!!previewDetails?.cast.length && (
+          <p className="title-card-meta">
+            <strong>Starring</strong> {previewDetails.cast.join(', ')}
+          </p>
+        )}
 
         <button
           type="button"
