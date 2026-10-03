@@ -1,11 +1,11 @@
-# WhatToWatch — Session Handoff
+# WhatToWatch — Handoff
 
-**Date:** 2026-08-02
+**Last updated:** 2026-10-03 (covers all commits through `11b5905`)
 **Repo:** https://github.com/Lanyard81/WhatToWatch (main branch, public)
 **Live:** https://lanyard81.github.io/WhatToWatch/
-**Firebase project:** `watchtracker-80372`
+**Firebase project:** the original author's own (not shared). Create your own — see §3.
 
-This document is written for whoever (human or Claude) picks this project up next. It covers what exists, how it got here, what's genuinely unfinished, and where the sharp edges are.
+This document is written for whoever (human or AI assistant, e.g. ChatGPT or Claude) picks this project up next, including someone who wants to fold it into a larger app (see §10). It covers what exists, how it got here, what's genuinely unfinished, and where the sharp edges are.
 
 ---
 
@@ -25,8 +25,8 @@ A household movie/TV watch-tracker PWA for 2–3 people, built to the pattern of
 ## 3. Environment / secrets
 
 - `.env` (gitignored, **not** in the repo) holds `VITE_FIREBASE_*` and `VITE_TMDB_API_KEY`. Copy `.env.example` and fill in real values to run locally.
-- Firebase CLI (`firebase-tools`) is installed globally on this machine and already authenticated as `dlivermore.au@gmail.com` — `firebase deploy --only firestore:rules` and `firestore:indexes` work directly from this environment without needing interactive login again (that hurdle is already cleared).
-- GitHub CLI (`gh`) is authenticated as `Lanyard81` — `git push` and `gh-pages` deploys work directly.
+- **Use your own Firebase project and TMDB key.** Create a Firebase project (Auth: Google + Email/Password; Firestore), copy its web config into `.env`, get a free TMDB v3 API key, then run `firebase deploy --only firestore:rules,firestore:indexes` so the security rules in this repo are applied. `README.md` has step-by-step setup.
+- Never commit `.env`. It is gitignored; only `.env.example` is tracked.
 
 ## 4. How to run / deploy
 
@@ -39,7 +39,7 @@ firebase deploy --only firestore:rules      # after editing firestore.rules
 firebase deploy --only firestore:indexes    # after editing firestore.indexes.json
 ```
 
-Standard workflow used all session: edit → `npm run build` (must be clean) → browser sanity check on the **login page only** (see §6 on why) → `git add -A -- ':!.env'` → commit → push → `npm run deploy`.
+Standard workflow used all session: edit → `npm run build` (must be clean) → browser sanity check on the **login page only** (see §6 on why) → commit → push → `npm run deploy`.
 
 ## 5. What's been built (chronological, so the "why" is traceable)
 
@@ -61,11 +61,19 @@ Shared vs. individual rating modes (household setting), 1–10 rating picker, "w
 1. **First pass:** a from-scratch design token system (purple/blue/green/rose accent presets, Fraunces display font) built after a formal dual-agent Impeccable design critique (scored 20/40 — full report at `.impeccable/critique/2026-08-01T13-27-39Z__whattowatch-app-wide-review.md`).
 2. **Second pass — current state:** the user asked for a restyle to match a sibling app "The Kitchen." This **replaced** the Fraunces/purple system entirely with:
    - **"Olive Grove" token system** — earthy green/mustard palette, given as exact hex values by the user, all independently contrast-verified (not eyeballed) via a small Node script computing WCAG contrast ratios.
-   - **4 colour schemes** (Settings → Appearance): Olive Grove (default), Terracotta, Indigo Dusk, Rosewood. Each scheme swaps only the primary/accent hues over the same neutral scale — not 4 fully independent 16-token palettes — which kept the design maintainable while still being genuinely different-looking. Every pairing in all 4 schemes was contrast-verified the same way.
+   - **5 colour schemes** (Settings → Appearance): Olive Grove (default), Terracotta, Indigo Dusk, Rosewood, Violet Dusk. Each scheme swaps only the primary/accent hues over the same neutral scale — not fully independent 16-token palettes — which kept the design maintainable while still being genuinely different-looking. Every pairing in the original 4 schemes was contrast-verified the same way.
    - **Bricolage Grotesque + Instrument Sans**, self-hosted.
    - **Radius scale** (`--radius-xs/sm/md/lg/pill`) and **elevation system** (`--elev1/elev2/rim/pressed`) applied throughout — structural cards/buttons/tab bar get soft shadow + rim, dense list rows (title cards, search results) stay flat, active tab/FAB get the stronger elevation.
    - **Navigation restructure:** bottom tab bar cut to 3 items (Want to Watch / Watching / Watched); Settings demoted to a 44×44 icon in a new persistent `TopBar`; a floating action button (bottom-right, mustard) replaces the old "Add" tab, deliberately kept as a floating corner button per explicit instruction (not inline like Kitchen's own pattern).
    - **Contextual back button** on the detail page — tracks where you actually navigated from via router state, instead of a single hardcoded guess.
+
+### Post-handoff additions (Aug 2 – Aug 8, 2026)
+- **Auto-create email/password accounts** on first sign-in (no manual user creation in Firebase console), plus a short explainer blurb on the sign-in page.
+- **Household rename** and **per-member opt-out** on Want to Watch titles (`Title.optedOut: string[]` of uids who don't want to watch it).
+- **Poster shelf view** and icon view toggle (list / carousel / shelf); top bar restructured; Want to Watch controls merged into one row.
+- **Configurable default view** (Settings) and a **"My picks"** sort/filter (hides titles you opted out of).
+- **Tonight-picker** uses a Movies/TV filter instead of the earlier runtime filter.
+- **Tap-to-preview on search results**: tapping a result opens a preview (summary + top cast via `fetchTitleDetails`) before you confirm adding it.
 
 ## 6. Known limitations / things NOT done
 
@@ -129,6 +137,30 @@ firestore.rules         Security rules — read the comments, they explain non-o
 firestore.indexes.json  Composite indexes (status + addedAt/watchedAt)
 .impeccable/critique/   Persisted design critique report from the Impeccable skill run
 ```
+
+## 10. Integrating this into another app
+
+Pick a level of integration:
+
+**A. Embed as-is (least work).** Build with `npm run build` and host `dist/` under a sub-path of your app, or link to it. The Vite `base` is `/WhatToWatch/` in `vite.config.ts` — change it to match wherever you host it. Separate Firebase project = separate users and data.
+
+**B. Lift the pieces (most common).** These are fairly self-contained:
+
+| Piece | Files | Notes |
+|---|---|---|
+| TMDB client | `src/lib/tmdb.ts`, `src/types.ts` | Pure `fetch` functions, no React/Firebase dependency. Needs `VITE_TMDB_API_KEY`. Easiest thing to reuse. |
+| Data model | `src/types.ts`, `firestore.rules`, `firestore.indexes.json` | Collections: `households/{id}` → `titles/{id}` → `ratings/{id}`; also `members/{uid}` and `tags/{id}`. If your app has its own auth/user model, map "household" to your own group/org concept. |
+| Firestore hooks | `src/hooks/*` | One hook per query shape, all take `householdId`. Reusable if you keep the same schema. |
+| Auth + household state | `src/context/AuthContext.tsx`, `HouseholdContext.tsx` | Tied to Firebase Auth and the "one household per account" assumption (§6). Replace with your app's own auth if it has one. |
+| UI | `src/components/*`, `src/pages/*`, `src/index.css` | Coupled to the app's CSS token system (`--primary`, `--card`, etc. in `index.css`) and `ThemeContext`. Expect to restyle rather than copy. |
+
+**Things to watch when merging**
+- `firestore.rules` encodes membership checks (`memberIds`) and a self-join pattern; if you merge into an existing Firebase project, merge rules rather than overwriting them.
+- Routing uses `react-router-dom` v7 with a basename; nest the routes under your own router or adjust the basename.
+- React 19 / TypeScript 6 / Vite 8 — check version compatibility with the host app.
+- The TMDB key ships in the client bundle (normal for TMDB v3); TMDB's terms require showing attribution ("This product uses the TMDB API but is not endorsed or certified by TMDB") — add it if the host app is public.
+
+**Prompt starter for ChatGPT:** "Here is HANDOFF.md and the relevant files from the WhatToWatch repo. My app is <stack>. I want to add <feature> using WhatToWatch's <TMDB client / data model / watchlist UI>. Propose a plan, then give me the exact file changes."
 
 ---
 
